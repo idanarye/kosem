@@ -1,0 +1,2 @@
+[workspace]
+members = ["kosem-server", "kosem-gtk"]
