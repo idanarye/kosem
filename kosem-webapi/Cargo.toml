@@ -1,0 +1,12 @@
+[package]
+name = "kosem-webapi"
+version = "0.1.0"
+authors = ["Idan Arye <IdanArye@gmail.com>"]
+edition = "2018"
+license = "MIT/Apache-2.0"
+repository = "https://github.com/idanarye/kosem"
+
+[lib]
+
+[dependencies]
+serde = { version = "1.0.90", features = ["derive"] }

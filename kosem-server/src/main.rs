@@ -1,4 +1,5 @@
-use kosem_server::server_config;
+// use kosem_server::server_config;
+use kosem_server::http_server::run_server;
 
 fn main() -> Result<(), String> {
     flexi_logger::Logger::with_env_or_str("warn")
@@ -7,7 +8,10 @@ fn main() -> Result<(), String> {
     let mut settings = config::Config::default();
     settings.merge(config::File::with_name("KosemServer.toml")).map_err(|e| format!("{}", e))?;
 
-    log::warn!("{:?}", settings.try_into::<server_config::ServerConfig>());
+    let config = settings.try_into().map_err(|e| e.to_string())?;
+    // log::warn!("{:?}", settings.try_into::<server_config::ServerConfig>());
+
+    run_server(config);
 
     Ok(())
 }

@@ -2,15 +2,15 @@ use serde::{Deserialize};
 
 #[derive(Debug, Deserialize)]
 pub struct ServerConfig {
-    server: ServerSection,
+    pub server: ServerSection,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct ServerSection {
     #[serde(default = "default_name")]
-    name: String,
+    pub name: String,
     #[serde(default = "default_port")]
-    port: u16,
+    pub port: u16,
 }
 
 fn default_name() -> String {

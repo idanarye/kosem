@@ -1,2 +1,2 @@
 [workspace]
-members = ["kosem-server", "kosem-gtk"]
+members = ["kosem-webapi", "kosem-server", "kosem-gtk"]
