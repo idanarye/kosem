@@ -16,13 +16,15 @@ class KosemConnection(object):
 
         self.__con.send(json.dumps(message))
 
-    def call(self, method, **kwargs):
+    def call(self, method, *args, **kwargs):
+        assert not (args and kwargs), 'both args and kwargs specified'
+
         message_id = next(self.__message_ids)
 
         message = dict(
             jsonrpc="2.0",
             id=message_id,
             method=method,
-            params=kwargs)
+            params=args or kwargs)
 
         self.__con.send(json.dumps(message))

@@ -12,9 +12,10 @@ impl actix::Actor for WsJrpc {
     type Context = ws::WebsocketContext<Self>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
-        let role = role_actors::NotYetIdentifiedActor::new(ctx.address());
-        let role = role.start();
-        self.state = role_actors::ActorRoleState::NotYetIdentifiedActor(role);
+        self.state = role_actors::ActorRoleState::start_not_yet_identified_actor(ctx.address());
+        // let role = role_actors::not_yet_identified::NotYetIdentifiedActor::new(ctx.address());
+        // let role = role.start();
+        // self.state = role_actors::ActorRoleState::NotYetIdentifiedActor(role);
     }
 }
 
@@ -25,6 +26,7 @@ impl actix::StreamHandler<ws::Message, ws::ProtocolError> for WsJrpc {
             ws::Message::Text(txt) => {
                 let request: Request = serde_json::from_str(&txt).unwrap();
                 log::info!("got {:?}", request);
+                self.state.send_request_from_connection(&request.method, request.params);
             },
             _ => (),
         }
@@ -37,12 +39,12 @@ struct Request {
     method: String,
     #[serde(default)]
     id: Option<usize>,
-    params: RequestParams,
+    params: serde_json::Value,
 }
 
-#[derive(Debug, Deserialize)]
-#[serde(untagged)]
-enum RequestParams {
-    Positional(Vec<serde_json::value::Value>),
-    Named(serde_json::value::Map<String, serde_json::value::Value>),
-}
+// #[derive(Debug, Deserialize)]
+// #[serde(untagged)]
+// enum RequestParams {
+    // Positional(Vec<serde_json::value::Value>),
+    // Named(serde_json::value::Map<String, serde_json::value::Value>),
+// }

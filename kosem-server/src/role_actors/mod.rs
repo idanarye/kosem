@@ -1,9 +1,4 @@
 mod not_yet_identified;
-pub use not_yet_identified::NotYetIdentifiedActor;
+mod actor_role_state;
 
-use actix_web::actix;
-
-pub enum ActorRoleState {
-    Init,
-    NotYetIdentifiedActor(actix::Addr<NotYetIdentifiedActor>),
-}
+pub use actor_role_state::ActorRoleState;
