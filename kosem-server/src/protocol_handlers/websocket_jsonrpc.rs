@@ -1,8 +1,10 @@
 use serde::{Deserialize};
 use actix_web::*;
+use actix_web::actix;
 use actix_web::actix::AsyncContext;
 
 use crate::role_actors;
+use crate::internal_messages::SetRole;
 
 pub struct WsJrpc {
     pub state: role_actors::ActorRoleState,
@@ -13,9 +15,6 @@ impl actix::Actor for WsJrpc {
 
     fn started(&mut self, ctx: &mut Self::Context) {
         self.state = role_actors::ActorRoleState::start_not_yet_identified_actor(ctx.address());
-        // let role = role_actors::not_yet_identified::NotYetIdentifiedActor::new(ctx.address());
-        // let role = role.start();
-        // self.state = role_actors::ActorRoleState::NotYetIdentifiedActor(role);
     }
 }
 
@@ -48,3 +47,15 @@ struct Request {
     // Positional(Vec<serde_json::value::Value>),
     // Named(serde_json::value::Map<String, serde_json::value::Value>),
 // }
+
+impl actix::Handler<SetRole> for WsJrpc {
+    type Result = <SetRole as actix::Message>::Result;
+
+    fn handle(&mut self, msg: SetRole, _ctx: &mut Self::Context) -> Self::Result {
+        match msg {
+            SetRole::Testee(addr) => {
+                self.state = role_actors::ActorRoleState::TesteeActor(addr);
+            }
+        }
+    }
+}
