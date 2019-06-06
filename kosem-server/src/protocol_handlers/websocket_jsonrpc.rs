@@ -1,7 +1,6 @@
 use serde::{Deserialize};
-use actix_web::*;
-use actix_web::actix;
-use actix_web::actix::AsyncContext;
+use actix::AsyncContext;
+use actix_web_actors::ws;
 
 use crate::role_actors;
 use crate::internal_messages::SetRole;

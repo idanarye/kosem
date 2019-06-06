@@ -1,5 +1,4 @@
-use actix_web::actix;
-use actix_web::actix::Message;
+use actix::Message;
 
 use crate::role_actors::TesteeActor;
 

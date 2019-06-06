@@ -1,5 +1,3 @@
-use actix_web::*;
-
 use kosem_webapi::testee_messages::*;
 
 use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;

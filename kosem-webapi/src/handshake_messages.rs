@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use actix_web::actix::Message;
+use actix::Message;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LoginAsTestee {

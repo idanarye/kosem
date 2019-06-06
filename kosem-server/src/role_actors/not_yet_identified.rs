@@ -1,5 +1,4 @@
-use actix_web::*;
-use actix_web::actix::Actor as _;
+use actix::Actor as _;
 
 use kosem_webapi::handshake_messages::*;
 
