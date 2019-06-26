@@ -12,3 +12,4 @@ repository = "https://github.com/idanarye/kosem"
 serde = { version = "1.0.90", features = ["derive"] }
 actix-web = "1.0.0"
 actix = "0.8.3"
+uuid = { version = "0.7.4", features = ["serde", "v4"] }

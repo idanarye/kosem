@@ -1,5 +1,6 @@
 import itertools
 import json
+import threading
 
 import websocket
 
@@ -7,6 +8,9 @@ class KosemConnection(object):
     def __init__(self, host, port):
         self.__con = websocket.create_connection('ws://{host}:{port}/ws-jrpc'.format_map(locals()))
         self.__message_ids = itertools.count(1)
+        self.__thread = threading.Thread(target=self.__recieve, daemon=True)
+        self.__thread.start()
+        self.__queue = []
 
     def notify(self, method, **kwargs):
         message = dict(
@@ -28,3 +32,14 @@ class KosemConnection(object):
             params=args or kwargs)
 
         self.__con.send(json.dumps(message))
+
+    def __recieve(self):
+        while True:
+            message = json.loads(self.__con.recv())
+            if message['method'] == 'LoginConfirmed':
+                self.uid = message['params']['uid']
+            else:
+                self.__queue.append(message)
+
+    def receive(self):
+        return self.__queue.pop(0)

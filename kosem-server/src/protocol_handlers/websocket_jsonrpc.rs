@@ -1,8 +1,9 @@
-use serde::{Deserialize};
+use serde::{Serialize, Deserialize};
 use actix::AsyncContext;
 use actix_web_actors::ws;
 
 use crate::role_actors;
+use crate::internal_messages::RpcMessage;
 use crate::internal_messages::SetRole;
 
 pub struct WsJrpc {
@@ -22,7 +23,7 @@ impl actix::StreamHandler<ws::Message, ws::ProtocolError> for WsJrpc {
         match msg {
             ws::Message::Ping(msg) => ctx.pong(&msg),
             ws::Message::Text(txt) => {
-                let request: Request = serde_json::from_str(&txt).unwrap();
+                let request: JrpcMessage = serde_json::from_str(&txt).unwrap();
                 log::info!("got {:?}", request);
                 self.state.send_request_from_connection(&request.method, request.params);
             },
@@ -31,8 +32,8 @@ impl actix::StreamHandler<ws::Message, ws::ProtocolError> for WsJrpc {
     }
 }
 
-#[derive(Debug, Deserialize)]
-struct Request {
+#[derive(Debug, Serialize, Deserialize)]
+struct JrpcMessage {
     jsonrpc: String,
     method: String,
     #[serde(default)]
@@ -46,6 +47,20 @@ struct Request {
     // Positional(Vec<serde_json::value::Value>),
     // Named(serde_json::value::Map<String, serde_json::value::Value>),
 // }
+
+impl actix::Handler<RpcMessage> for WsJrpc {
+    type Result = <RpcMessage as actix::Message>::Result;
+
+    fn handle(&mut self, msg: RpcMessage, ctx: &mut Self::Context) -> Self::Result {
+        let response = JrpcMessage {
+            jsonrpc: "2.0".into(),
+            method: msg.method,
+            id: None,
+            params: msg.params.into(),
+        };
+        ctx.text(serde_json::to_string(&response).unwrap());
+    }
+}
 
 impl actix::Handler<SetRole> for WsJrpc {
     type Result = <SetRole as actix::Message>::Result;
