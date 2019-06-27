@@ -1,6 +1,6 @@
 use actix::Message;
 
-use crate::role_actors::TesteeActor;
+use crate::role_actors::{TesteeActor, TesterActor};
 
 pub struct RpcMessage {
     pub method: String,
@@ -22,6 +22,7 @@ impl RpcMessage {
 
 pub enum SetRole {
     Testee(actix::Addr<TesteeActor>),
+    Tester(actix::Addr<TesterActor>),
 }
 
 impl Message for SetRole {

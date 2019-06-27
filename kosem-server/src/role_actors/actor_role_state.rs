@@ -2,16 +2,17 @@ use actix::Actor as _;
 use serde::Deserialize;
 
 use kosem_webapi::handshake_messages::*;
-use kosem_webapi::testee_messages::*;
+use kosem_webapi::pairing_messages::*;
 
 use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
 
-use crate::role_actors::{NotYetIdentifiedActor, TesteeActor};
+use crate::role_actors::{NotYetIdentifiedActor, TesteeActor, TesterActor};
 
 pub enum ActorRoleState {
     Init,
     NotYetIdentifiedActor(actix::Addr<NotYetIdentifiedActor>),
     TesteeActor(actix::Addr<TesteeActor>),
+    TesterActor(actix::Addr<TesterActor>),
 }
 
 impl ActorRoleState {
@@ -44,6 +45,7 @@ impl ActorRoleState {
         }
         route! {
             LoginAsTestee: NotYetIdentifiedActor;
+            LoginAsTester: NotYetIdentifiedActor;
             RequestTester: TesteeActor;
         }
     }

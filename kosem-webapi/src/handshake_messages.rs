@@ -12,6 +12,15 @@ impl Message for LoginAsTestee {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct LoginAsTester {
+    pub name: String,
+}
+
+impl Message for LoginAsTester {
+    type Result = ();
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct LoginConfirmed {
     pub uid: Uuid,
 }

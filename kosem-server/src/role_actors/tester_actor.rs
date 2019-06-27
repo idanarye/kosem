@@ -1,26 +1,25 @@
 use kosem_webapi::Uuid;
-use kosem_webapi::pairing_messages::*;
 
 use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
 
-pub struct TesteeActor {
+pub struct TesterActor {
     con_actor: actix::Addr<WsJrpc>,
     uid: Uuid,
     name: String,
 }
 
-impl TesteeActor {
+impl TesterActor {
     pub fn new(con_actor: actix::Addr<WsJrpc>, name: String) -> Self {
         let uid = Uuid::new_v4();
         Self { con_actor: con_actor, name, uid }
     }
 }
 
-impl actix::Actor for TesteeActor {
+impl actix::Actor for TesterActor {
     type Context = actix::Context<Self>;
 
     fn started(&mut self, _ctx: &mut Self::Context) {
-        log::info!("Starting TesteeActor {} - {}", self.uid, self.name);
+        log::info!("Starting TesterActor {} - {}", self.uid, self.name);
         let response = kosem_webapi::handshake_messages::LoginConfirmed {
             uid: self.uid,
         };
@@ -29,14 +28,6 @@ impl actix::Actor for TesteeActor {
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
-        log::info!("Ending TesteeActor {}", self.uid);
-    }
-}
-
-impl actix::Handler<RequestTester> for TesteeActor {
-    type Result = <RequestTester as actix::Message>::Result;
-
-    fn handle(&mut self, msg: RequestTester, _ctx: &mut actix::Context<Self>) -> Self::Result {
-        log::info!("RequestTester from {}: {:?}", self.name, msg);
+        log::info!("Ending TesterActor {}", self.uid);
     }
 }

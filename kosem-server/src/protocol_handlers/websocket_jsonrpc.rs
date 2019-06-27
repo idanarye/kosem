@@ -70,6 +70,9 @@ impl actix::Handler<SetRole> for WsJrpc {
             SetRole::Testee(addr) => {
                 self.state = role_actors::ActorRoleState::TesteeActor(addr);
             }
+            SetRole::Tester(addr) => {
+                self.state = role_actors::ActorRoleState::TesterActor(addr);
+            }
         }
     }
 }

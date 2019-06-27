@@ -3,7 +3,7 @@ use actix::Actor as _;
 use kosem_webapi::handshake_messages::*;
 
 use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
-use crate::role_actors::TesteeActor;
+use crate::role_actors::{TesteeActor, TesterActor};
 use crate::internal_messages::SetRole;
 
 pub struct NotYetIdentifiedActor {
@@ -28,6 +28,19 @@ impl actix::Handler<LoginAsTestee> for NotYetIdentifiedActor {
         let actor = TesteeActor::new(self.con_actor.clone(), msg.name);
         let actor = actor.start();
         self.con_actor.do_send(SetRole::Testee(actor));
+        use actix::ActorContext;
+        ctx.stop();
+    }
+}
+
+impl actix::Handler<LoginAsTester> for NotYetIdentifiedActor {
+    type Result = <LoginAsTestee as actix::Message>::Result;
+
+    fn handle(&mut self, msg: LoginAsTester, ctx: &mut actix::Context<Self>) -> Self::Result {
+        log::info!("LoginAsTester: {:?}", msg);
+        let actor = TesterActor::new(self.con_actor.clone(), msg.name);
+        let actor = actor.start();
+        self.con_actor.do_send(SetRole::Tester(actor));
         use actix::ActorContext;
         ctx.stop();
     }
