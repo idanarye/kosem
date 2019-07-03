@@ -1,4 +1,3 @@
-// use kosem_server::server_config;
 use kosem_server::http_server::run_server;
 
 fn main() -> Result<(), String> {

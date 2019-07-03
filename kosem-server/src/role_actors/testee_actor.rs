@@ -1,7 +1,11 @@
+// use actix::prelude::*;
+
 use kosem_webapi::Uuid;
 use kosem_webapi::pairing_messages::*;
 
 use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
+
+// use crate::role_actors::PairingActor;
 
 pub struct TesteeActor {
     con_actor: actix::Addr<WsJrpc>,
@@ -38,5 +42,6 @@ impl actix::Handler<RequestTester> for TesteeActor {
 
     fn handle(&mut self, msg: RequestTester, _ctx: &mut actix::Context<Self>) -> Self::Result {
         log::info!("RequestTester from {}: {:?}", self.name, msg);
+        // log::info!("Pairing actor be {:?}", PairingActor::from_registry());
     }
 }
