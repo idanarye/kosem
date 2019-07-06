@@ -3,20 +3,20 @@ use actix::Message;
 use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct LoginAsTestee {
+pub struct LoginAsProcedure {
     pub name: String,
 }
 
-impl Message for LoginAsTestee {
+impl Message for LoginAsProcedure {
     type Result = ();
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct LoginAsTester {
+pub struct LoginAsHuman {
     pub name: String,
 }
 
-impl Message for LoginAsTester {
+impl Message for LoginAsHuman {
     type Result = ();
 }
 

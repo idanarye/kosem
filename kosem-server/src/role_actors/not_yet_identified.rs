@@ -3,7 +3,7 @@ use actix::Actor as _;
 use kosem_webapi::handshake_messages::*;
 
 use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
-use crate::role_actors::{TesteeActor, TesterActor};
+use crate::role_actors::{ProcedureActor, HumanActor};
 use crate::internal_messages::SetRole;
 
 pub struct NotYetIdentifiedActor {
@@ -20,27 +20,27 @@ impl actix::Actor for NotYetIdentifiedActor {
     type Context = actix::Context<Self>;
 }
 
-impl actix::Handler<LoginAsTestee> for NotYetIdentifiedActor {
-    type Result = <LoginAsTestee as actix::Message>::Result;
+impl actix::Handler<LoginAsProcedure> for NotYetIdentifiedActor {
+    type Result = <LoginAsProcedure as actix::Message>::Result;
 
-    fn handle(&mut self, msg: LoginAsTestee, ctx: &mut actix::Context<Self>) -> Self::Result {
-        log::info!("LoginAsTestee: {:?}", msg);
-        let actor = TesteeActor::new(self.con_actor.clone(), msg.name);
+    fn handle(&mut self, msg: LoginAsProcedure, ctx: &mut actix::Context<Self>) -> Self::Result {
+        log::info!("LoginAsProcedure: {:?}", msg);
+        let actor = ProcedureActor::new(self.con_actor.clone(), msg.name);
         let actor = actor.start();
-        self.con_actor.do_send(SetRole::Testee(actor));
+        self.con_actor.do_send(SetRole::Procedure(actor));
         use actix::ActorContext;
         ctx.stop();
     }
 }
 
-impl actix::Handler<LoginAsTester> for NotYetIdentifiedActor {
-    type Result = <LoginAsTestee as actix::Message>::Result;
+impl actix::Handler<LoginAsHuman> for NotYetIdentifiedActor {
+    type Result = <LoginAsProcedure as actix::Message>::Result;
 
-    fn handle(&mut self, msg: LoginAsTester, ctx: &mut actix::Context<Self>) -> Self::Result {
-        log::info!("LoginAsTester: {:?}", msg);
-        let actor = TesterActor::new(self.con_actor.clone(), msg.name);
+    fn handle(&mut self, msg: LoginAsHuman, ctx: &mut actix::Context<Self>) -> Self::Result {
+        log::info!("LoginAsHuman: {:?}", msg);
+        let actor = HumanActor::new(self.con_actor.clone(), msg.name);
         let actor = actor.start();
-        self.con_actor.do_send(SetRole::Tester(actor));
+        self.con_actor.do_send(SetRole::Human(actor));
         use actix::ActorContext;
         ctx.stop();
     }

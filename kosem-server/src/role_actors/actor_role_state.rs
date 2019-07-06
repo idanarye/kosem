@@ -6,13 +6,13 @@ use kosem_webapi::pairing_messages::*;
 
 use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
 
-use crate::role_actors::{NotYetIdentifiedActor, TesteeActor, TesterActor};
+use crate::role_actors::{NotYetIdentifiedActor, ProcedureActor, HumanActor};
 
 pub enum ActorRoleState {
     Init,
     NotYetIdentifiedActor(actix::Addr<NotYetIdentifiedActor>),
-    TesteeActor(actix::Addr<TesteeActor>),
-    TesterActor(actix::Addr<TesterActor>),
+    ProcedureActor(actix::Addr<ProcedureActor>),
+    HumanActor(actix::Addr<HumanActor>),
 }
 
 impl ActorRoleState {
@@ -44,9 +44,9 @@ impl ActorRoleState {
             }
         }
         route! {
-            LoginAsTestee: NotYetIdentifiedActor;
-            LoginAsTester: NotYetIdentifiedActor;
-            RequestTester: TesteeActor;
+            LoginAsProcedure: NotYetIdentifiedActor;
+            LoginAsHuman: NotYetIdentifiedActor;
+            RequestHuman: ProcedureActor;
         }
     }
 }

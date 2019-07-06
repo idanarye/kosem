@@ -67,11 +67,11 @@ impl actix::Handler<SetRole> for WsJrpc {
 
     fn handle(&mut self, msg: SetRole, _ctx: &mut Self::Context) -> Self::Result {
         match msg {
-            SetRole::Testee(addr) => {
-                self.state = role_actors::ActorRoleState::TesteeActor(addr);
+            SetRole::Procedure(addr) => {
+                self.state = role_actors::ActorRoleState::ProcedureActor(addr);
             }
-            SetRole::Tester(addr) => {
-                self.state = role_actors::ActorRoleState::TesterActor(addr);
+            SetRole::Human(addr) => {
+                self.state = role_actors::ActorRoleState::HumanActor(addr);
             }
         }
     }

@@ -2,7 +2,7 @@ use actix::Message;
 
 use kosem_webapi::Uuid;
 
-use crate::role_actors::{TesteeActor, TesterActor};
+use crate::role_actors::{ProcedureActor, HumanActor};
 
 pub struct RpcMessage {
     pub method: String,
@@ -23,20 +23,20 @@ impl RpcMessage {
 }
 
 pub enum SetRole {
-    Testee(actix::Addr<TesteeActor>),
-    Tester(actix::Addr<TesterActor>),
+    Procedure(actix::Addr<ProcedureActor>),
+    Human(actix::Addr<HumanActor>),
 }
 
 impl Message for SetRole {
     type Result = ();
 }
 
-pub struct TesterAvailable {
+pub struct HumanAvailable {
     pub uid: Uuid,
     pub name: String,
-    pub addr: actix::Addr<TesterActor>,
+    pub addr: actix::Addr<HumanActor>,
 }
 
-impl Message for TesterAvailable {
+impl Message for HumanAvailable {
     type Result = ();
 }
