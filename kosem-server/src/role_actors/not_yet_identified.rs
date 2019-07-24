@@ -1,10 +1,10 @@
-use actix::Actor as _;
+use actix::prelude::*;
 
 use kosem_webapi::handshake_messages::*;
 
 use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
 use crate::role_actors::{ProcedureActor, HumanActor};
-use crate::internal_messages::SetRole;
+use crate::internal_messages::{SetRole, ConnectionClosed};
 
 pub struct NotYetIdentifiedActor {
     con_actor: actix::Addr<WsJrpc>,
@@ -20,15 +20,22 @@ impl actix::Actor for NotYetIdentifiedActor {
     type Context = actix::Context<Self>;
 }
 
+impl actix::Handler<ConnectionClosed> for NotYetIdentifiedActor {
+    type Result = ();
+
+    fn handle(&mut self, _msg: ConnectionClosed, ctx: &mut actix::Context<Self>) -> Self::Result {
+        ctx.stop();
+    }
+}
+
 impl actix::Handler<LoginAsProcedure> for NotYetIdentifiedActor {
     type Result = <LoginAsProcedure as actix::Message>::Result;
 
     fn handle(&mut self, msg: LoginAsProcedure, ctx: &mut actix::Context<Self>) -> Self::Result {
         log::info!("LoginAsProcedure: {:?}", msg);
-        let actor = ProcedureActor::new(self.con_actor.clone(), msg.name);
+        let actor = ProcedureActor::builder().con_actor(self.con_actor.clone()).name(msg.name).build();
         let actor = actor.start();
         self.con_actor.do_send(SetRole::Procedure(actor));
-        use actix::ActorContext;
         ctx.stop();
     }
 }
@@ -41,7 +48,6 @@ impl actix::Handler<LoginAsHuman> for NotYetIdentifiedActor {
         let actor = HumanActor::new(self.con_actor.clone(), msg.name);
         let actor = actor.start();
         self.con_actor.do_send(SetRole::Human(actor));
-        use actix::ActorContext;
         ctx.stop();
     }
 }

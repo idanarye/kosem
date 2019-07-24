@@ -27,6 +27,14 @@ impl actix::StreamHandler<ws::Message, ws::ProtocolError> for WsJrpc {
                 log::info!("got {:?}", request);
                 self.state.send_request_from_connection(&request.method, request.params);
             },
+            ws::Message::Close(reason) => {
+                log::info!("Closed connection: {:?}", reason);
+                self.state.notify_connection_is_closed();
+                ctx.close(Some(ws::CloseReason {
+                    code: ws::CloseCode::Normal,
+                    description: None,
+                }));
+            },
             _ => (),
         }
     }

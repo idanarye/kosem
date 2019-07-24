@@ -49,4 +49,15 @@ impl ActorRoleState {
             RequestHuman: ProcedureActor;
         }
     }
+
+    pub fn notify_connection_is_closed(&self) {
+        let msg = crate::internal_messages::ConnectionClosed;
+
+        match self {
+            ActorRoleState::Init => {},
+            ActorRoleState::NotYetIdentifiedActor(addr) => addr.do_send(msg),
+            ActorRoleState::ProcedureActor(addr) => addr.do_send(msg),
+            ActorRoleState::HumanActor(addr) => addr.do_send(msg),
+        }
+    }
 }

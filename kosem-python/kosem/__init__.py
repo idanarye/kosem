@@ -12,6 +12,9 @@ class KosemConnection(object):
         self.__thread.start()
         self.__queue = []
 
+    def close(self):
+        self.__con.close()
+
     def notify(self, method, **kwargs):
         message = dict(
             jsonrpc="2.0",
@@ -35,11 +38,20 @@ class KosemConnection(object):
 
     def __recieve(self):
         while True:
-            message = json.loads(self.__con.recv())
-            if message['method'] == 'LoginConfirmed':
-                self.uid = message['params']['uid']
-            else:
-                self.__queue.append(message)
+            try:
+                raw_message = self.__con.recv()
+            except websocket.WebSocketConnectionClosedException:
+                return
+            if raw_message:
+                message = json.loads(raw_message)
+                if message['method'] == 'LoginConfirmed':
+                    self.uid = message['params']['uid']
+                else:
+                    self.__queue.append(message)
 
     def receive(self):
         return self.__queue.pop(0)
+
+    def receive_all(self):
+        while self.__queue:
+            yield self.__queue.pop(0)

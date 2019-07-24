@@ -1,23 +1,23 @@
-// use actix::prelude::*;
+use std::collections::HashSet;
+
+use actix::prelude::*;
 
 use kosem_webapi::Uuid;
 use kosem_webapi::pairing_messages::*;
 
 use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
 
-// use crate::role_actors::PairingActor;
+use crate::role_actors::PairingActor;
+use crate::internal_messages::{RpcMessage, RemoveRequestForHuman, ProcedureRequestingHuman, ConnectionClosed};
 
+#[derive(typed_builder::TypedBuilder)]
 pub struct ProcedureActor {
     con_actor: actix::Addr<WsJrpc>,
+    #[builder(default=Uuid::new_v4())]
     uid: Uuid,
     name: String,
-}
-
-impl ProcedureActor {
-    pub fn new(con_actor: actix::Addr<WsJrpc>, name: String) -> Self {
-        let uid = Uuid::new_v4();
-        Self { con_actor: con_actor, name, uid }
-    }
+    #[builder(default)]
+    pending_requests_for_humans: HashSet<Uuid>,
 }
 
 impl actix::Actor for ProcedureActor {
@@ -28,20 +28,39 @@ impl actix::Actor for ProcedureActor {
         let response = kosem_webapi::handshake_messages::LoginConfirmed {
             uid: self.uid,
         };
-        let message = crate::internal_messages::RpcMessage::new("LoginConfirmed", response);
+        let message = RpcMessage::new("LoginConfirmed", response);
         self.con_actor.do_send(message);
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
         log::info!("Ending ProcedureActor {}", self.uid);
+        for pending_request in self.pending_requests_for_humans.iter() {
+            PairingActor::from_registry().do_send(RemoveRequestForHuman {
+                uid: *pending_request,
+            });
+        }
+    }
+}
+
+impl actix::Handler<ConnectionClosed> for ProcedureActor {
+    type Result = ();
+
+    fn handle(&mut self, _msg: ConnectionClosed, ctx: &mut actix::Context<Self>) -> Self::Result {
+        ctx.stop();
     }
 }
 
 impl actix::Handler<RequestHuman> for ProcedureActor {
     type Result = <RequestHuman as actix::Message>::Result;
 
-    fn handle(&mut self, msg: RequestHuman, _ctx: &mut actix::Context<Self>) -> Self::Result {
+    fn handle(&mut self, msg: RequestHuman, ctx: &mut actix::Context<Self>) -> Self::Result {
         log::info!("RequestHuman from {}: {:?}", self.name, msg);
-        // log::info!("Pairing actor be {:?}", PairingActor::from_registry());
+        let uid = Uuid::new_v4();
+        self.pending_requests_for_humans.insert(uid);
+        PairingActor::from_registry().do_send(ProcedureRequestingHuman {
+            uid: uid,
+            orig_request: msg,
+            addr: ctx.address(),
+        });
     }
 }
