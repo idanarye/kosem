@@ -3,8 +3,7 @@ use serde::{Serialize, Deserialize};
 use actix_web_actors::ws;
 
 use crate::role_actors;
-use crate::internal_messages::RpcMessage;
-use crate::internal_messages::SetRole;
+use crate::internal_messages::connection::{RpcMessage, SetRole};
 
 pub struct WsJrpc {
     pub state: role_actors::ActorRoleState,

@@ -5,8 +5,8 @@ use kosem_webapi::Uuid;
 use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
 use crate::role_actors::PairingActor;
 
-use crate::internal_messages::{RpcMessage, ConnectionClosed};
-use crate::internal_messages::{HumanAvailable, ProcedureRequestingHuman, RemoveAvailableHuman};
+use crate::internal_messages::connection::{RpcMessage, ConnectionClosed};
+use crate::internal_messages::pairing::{HumanAvailable, ProcedureRequestingHuman, RemoveAvailableHuman};
 
 pub struct HumanActor {
     con_actor: actix::Addr<WsJrpc>,

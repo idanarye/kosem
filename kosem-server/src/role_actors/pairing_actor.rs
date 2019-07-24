@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use kosem_webapi::Uuid;
 
-use crate::internal_messages::*;
+use crate::internal_messages::pairing::*;
 
 #[derive(Default)]
 pub struct PairingActor {

@@ -51,7 +51,7 @@ impl ActorRoleState {
     }
 
     pub fn notify_connection_is_closed(&self) {
-        let msg = crate::internal_messages::ConnectionClosed;
+        let msg = crate::internal_messages::connection::ConnectionClosed;
 
         match self {
             ActorRoleState::Init => {},

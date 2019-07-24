@@ -4,7 +4,7 @@ use kosem_webapi::handshake_messages::*;
 
 use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
 use crate::role_actors::{ProcedureActor, HumanActor};
-use crate::internal_messages::{SetRole, ConnectionClosed};
+use crate::internal_messages::connection::{SetRole, ConnectionClosed};
 
 pub struct NotYetIdentifiedActor {
     con_actor: actix::Addr<WsJrpc>,
