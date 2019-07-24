@@ -1,5 +1,5 @@
+use actix::prelude::*;
 use serde::{Serialize, Deserialize};
-use actix::AsyncContext;
 use actix_web_actors::ws;
 
 use crate::role_actors;
@@ -27,9 +27,7 @@ impl actix::StreamHandler<ws::Message, ws::ProtocolError> for WsJrpc {
                 log::info!("got {:?}", request);
                 self.state.send_request_from_connection(&request.method, request.params);
             },
-            ws::Message::Close(reason) => {
-                log::info!("Closed connection: {:?}", reason);
-                self.state.notify_connection_is_closed();
+            ws::Message::Close(_) => {
                 ctx.close(Some(ws::CloseReason {
                     code: ws::CloseCode::Normal,
                     description: None,
@@ -37,6 +35,11 @@ impl actix::StreamHandler<ws::Message, ws::ProtocolError> for WsJrpc {
             },
             _ => (),
         }
+    }
+
+    fn finished(&mut self, ctx: &mut Self::Context) {
+        self.state.notify_connection_is_closed();
+        ctx.stop()
     }
 }
 
