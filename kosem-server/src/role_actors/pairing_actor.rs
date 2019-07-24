@@ -52,3 +52,11 @@ impl actix::Handler<RemoveRequestForHuman> for PairingActor {
         self.procedures_requesting_humans.remove(&msg.uid);
     }
 }
+
+impl actix::Handler<RemoveAvailableHuman> for PairingActor {
+    type Result = ();
+
+    fn handle(&mut self, msg: RemoveAvailableHuman, _ctx: &mut Self::Context) -> Self::Result {
+        self.available_humans.remove(&msg.uid);
+    }
+}

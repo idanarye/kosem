@@ -6,7 +6,7 @@ use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
 use crate::role_actors::PairingActor;
 
 use crate::internal_messages::{RpcMessage, ConnectionClosed};
-use crate::internal_messages::{HumanAvailable, ProcedureRequestingHuman};
+use crate::internal_messages::{HumanAvailable, ProcedureRequestingHuman, RemoveAvailableHuman};
 
 pub struct HumanActor {
     con_actor: actix::Addr<WsJrpc>,
@@ -41,6 +41,9 @@ impl actix::Actor for HumanActor {
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
         log::info!("Ending HumanActor {}", self.uid);
+        PairingActor::from_registry().do_send(RemoveAvailableHuman {
+            uid: self.uid,
+        });
     }
 }
 

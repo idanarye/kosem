@@ -59,6 +59,14 @@ impl Message for ProcedureRequestingHuman {
     type Result = ();
 }
 
+pub struct RemoveAvailableHuman {
+    pub uid: Uuid,
+}
+
+impl Message for RemoveAvailableHuman {
+    type Result = ();
+}
+
 pub struct RemoveRequestForHuman {
     pub uid: Uuid,
 }
