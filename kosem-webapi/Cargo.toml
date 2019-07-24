@@ -9,7 +9,7 @@ repository = "https://github.com/idanarye/kosem"
 [lib]
 
 [dependencies]
-serde = { version = "1.0.90", features = ["derive"] }
-actix-web = "1.0.0"
+serde = { version = "1.0.97", features = ["derive"] }
+actix-web = "1.0.5"
 actix = "0.8.3"
 uuid = { version = "0.7.4", features = ["serde", "v4"] }
