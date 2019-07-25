@@ -1,4 +1,4 @@
-use kosem_gtk::client_config;
+use kosem_gui::client_config;
 
 fn main() -> Result<(), String> {
     flexi_logger::Logger::with_env_or_str("warn")

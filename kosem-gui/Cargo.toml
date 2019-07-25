@@ -1,5 +1,5 @@
 [package]
-name = "kosem-gtk"
+name = "kosem-gui"
 version = "0.1.0"
 authors = ["IdanArye <idanarye@gmail.com>"]
 edition = "2018"
