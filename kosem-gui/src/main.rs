@@ -7,7 +7,10 @@ fn main() -> Result<(), String> {
     let mut settings = config::Config::default();
     settings.merge(config::File::with_name("KosemClient.toml")).map_err(|e| format!("{}", e))?;
 
-    log::warn!("{:?}", settings.try_into::<client_config::ClientConfig>());
+    let settings = settings.try_into::<client_config::ClientConfig>().map_err(|e| format!("{}", e))?;
+    log::warn!("{:?}", settings);
+
+    kosem_gui::actors::launcher::start(settings);
 
     Ok(())
 }
