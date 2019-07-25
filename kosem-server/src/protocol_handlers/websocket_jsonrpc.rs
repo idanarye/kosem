@@ -1,6 +1,7 @@
 use actix::prelude::*;
-use serde::{Serialize, Deserialize};
 use actix_web_actors::ws;
+
+use kosem_webapi::protocols::JrpcMessage;
 
 use crate::role_actors;
 use crate::internal_messages::connection::{RpcMessage, SetRole};
@@ -41,22 +42,6 @@ impl actix::StreamHandler<ws::Message, ws::ProtocolError> for WsJrpc {
         ctx.stop()
     }
 }
-
-#[derive(Debug, Serialize, Deserialize)]
-struct JrpcMessage {
-    jsonrpc: String,
-    method: String,
-    #[serde(default)]
-    id: Option<usize>,
-    params: serde_json::Value,
-}
-
-// #[derive(Debug, Deserialize)]
-// #[serde(untagged)]
-// enum RequestParams {
-    // Positional(Vec<serde_json::value::Value>),
-    // Named(serde_json::value::Map<String, serde_json::value::Value>),
-// }
 
 impl actix::Handler<RpcMessage> for WsJrpc {
     type Result = <RpcMessage as actix::Message>::Result;

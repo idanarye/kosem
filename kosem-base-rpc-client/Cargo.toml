@@ -1,5 +1,5 @@
 [package]
-name = "kosem-gui"
+name = "kosem-base-rpc-client"
 version = "0.1.0"
 authors = ["IdanArye <idanarye@gmail.com>"]
 edition = "2018"
@@ -8,14 +8,11 @@ repository = "https://github.com/idanarye/kosem"
 
 [dependencies]
 log = "0.4.7"
-flexi_logger = "0.14.0"
-config = "0.9.3"
-serde = { version = "1.0.97", features = ["derive"] }
-gtk = "0.7.0"
 actix = "0.8.3"
 awc = "0.2.2"
 futures = "0.1.28"
 actix-codec = "0.1.2"
+serde = { version = "1.0.97", features = ["derive"] }
+serde_json = "1.0.40"
 
 kosem-webapi = { path = "../kosem-webapi" }
-kosem-base-rpc-client = { path = "../kosem-base-rpc-client" }
