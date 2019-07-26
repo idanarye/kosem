@@ -1,4 +1,6 @@
-// use actix::prelude::*;
+use std::collections::HashMap;
+
+use actix::prelude::*;
 // use actix::io::{SinkWrite, WriteHandler};
 // use actix_codec::{AsyncRead, AsyncWrite, Framed};
 
@@ -9,68 +11,52 @@
 // use awc::ws::{Frame, Codec, Message};
 // use awc::error::WsProtocolError;
 
-// use kosem_base_rpc_client::{ClientHandler, RpcMessage};
+use kosem_base_rpc_client::{ClientActor, wrap_addr_as_routing};
+use kosem_base_rpc_client::control_messages::{
+    RpcMessage,
+    ConnectClientActor,
+};
+use kosem_base_rpc_client::config::ServerConfig;
+
+use kosem_webapi::handshake_messages::{
+    LoginAsHuman,
+    // LoginConfirmed,
+};
 
 use crate::client_config::ClientConfig;
 
-pub fn start_client_actor(_config: ClientConfig) {
-    // struct Handler {
-    // }
-    // impl ClientHandler for Handler {
-        // fn started<A>(&mut self, ctx: &A::Context) where A: Actor<Context = Context<A>> {
-            // ctx.address().do_send(RpcMessage::new("LoginAsHuman", kosem_webapi::handshake_messages::LoginAsHuman {
-            // }));
-        // }
-    // }
-    // let handler = Handler {
-    // };
-    kosem_base_rpc_client::start_client_actor("localhost", 8206);
+pub fn start_client_actor(config: ClientConfig) {
+    let client = MyClient {
+        config,
+        client_actors: Default::default(),
+    };
+    client.start();
 }
 
-/*
-pub fn start_client_actor(_config: ClientConfig) {
-    Arbiter::spawn(lazy(|| {
-        Client::new()
-            .ws("http://127.0.0.1:8206/ws-jrpc")
-            .connect()
-            .map_err(|e| {
-                log::error!("Error: {}", e);
-            }).map(|(response, framed)| {
-                log::info!("Got response {:?}", response);
-                let (sink, stream) = framed.split();
-                let _addr = ClientActor::create(|ctx| {
-                    ClientActor::add_stream(stream, ctx);
-                    ClientActor {
-                        sink_write: SinkWrite::new(sink, ctx),
-                    }
-                });
-            })
-    }));
+struct MyClient {
+    config: ClientConfig,
+    client_actors: HashMap<usize, (ServerConfig, Addr<ClientActor>)>,
 }
 
-struct ClientActor<T: 'static + AsyncRead + AsyncWrite> {
-    sink_write: SinkWrite<SplitSink<Framed<T, Codec>>>,
-}
-
-impl<T: 'static + AsyncRead + AsyncWrite> Actor for ClientActor<T> {
+impl Actor for MyClient {
     type Context = Context<Self>;
 
-    fn started(&mut self, _ctx: &mut Self::Context) {
-        self.sink_write.write(Message::Text(r#"{
-            "jsonrpc": "2.0",
-            "method": "LoginAsHuman",
-            "params": {
-                "name": "Mister Human"
-            }
-        }"#.into())).unwrap();
+    fn started(&mut self, ctx: &mut Self::Context) {
+        let addr = ctx.address();
+        for (idx, server_config) in self.config.servers.iter().enumerate() {
+            ClientActor::start_actor(idx, server_config.clone(), wrap_addr_as_routing!(addr));
+        }
     }
 }
 
-impl<T: 'static + AsyncRead + AsyncWrite> StreamHandler<Frame, WsProtocolError> for ClientActor<T> {
-    fn handle(&mut self, _msg: Frame, _ctx: &mut Self::Context) {
+impl Handler<ConnectClientActor> for MyClient {
+    type Result = <ConnectClientActor as actix::Message>::Result;
+
+    fn handle(&mut self, msg: ConnectClientActor, _ctx: &mut Self::Context) -> Self::Result {
+        log::info!("Connecting a client actor");
+        msg.client_actor.do_send(RpcMessage::new("LoginAsHuman", LoginAsHuman {
+            name: self.config.display_name.clone(),
+        }));
+        self.client_actors.insert(msg.idx, (msg.server_config, msg.client_actor));
     }
 }
-
-impl<T: 'static + AsyncRead + AsyncWrite> WriteHandler<WsProtocolError> for ClientActor<T> {
-}
-*/

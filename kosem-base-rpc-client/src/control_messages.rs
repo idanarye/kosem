@@ -1,5 +1,8 @@
 use actix::prelude::*;
 
+use crate::ClientActor;
+use crate::config::ServerConfig;
+
 pub struct RpcMessage {
     pub method: String,
     pub params: serde_json::Value,
@@ -18,9 +21,12 @@ impl Message for RpcMessage {
     type Result = ();
 }
 
-pub struct ClientRouting {
+pub struct ConnectClientActor {
+    pub idx: usize,
+    pub server_config: ServerConfig,
+    pub client_actor: Addr<ClientActor>,
 }
 
-impl Message for ClientRouting {
+impl Message for ConnectClientActor {
     type Result = ();
 }
