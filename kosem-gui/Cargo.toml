@@ -16,6 +16,7 @@ actix = "0.8.3"
 awc = "0.2.2"
 futures = "0.1.28"
 actix-codec = "0.1.2"
+typed-builder = "0.3.0"
 
 kosem-webapi = { path = "../kosem-webapi" }
 kosem-base-rpc-client = { path = "../kosem-base-rpc-client" }

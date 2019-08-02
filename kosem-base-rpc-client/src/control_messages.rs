@@ -4,6 +4,7 @@ use crate::ClientActor;
 use crate::config::ServerConfig;
 
 pub struct RpcMessage {
+    pub idx: Option<usize>,
     pub method: String,
     pub params: serde_json::Value,
 }
@@ -11,6 +12,7 @@ pub struct RpcMessage {
 impl RpcMessage {
     pub fn new(method: impl Into<String>, params: impl serde::Serialize) -> Self {
         RpcMessage {
+            idx: None,
             method: method.into(),
             params: serde_json::to_value(params).unwrap(),
         }

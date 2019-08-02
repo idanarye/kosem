@@ -4,7 +4,7 @@ use actix::io::{SinkWrite, WriteHandler};
 use futures::Future;
 
 use awc::Client;
-use awc::ws::Frame;
+use awc::ws;
 use awc::error::WsProtocolError;
 
 use kosem_webapi::protocols::JrpcMessage;
@@ -14,6 +14,7 @@ use crate::config::ServerConfig;
 
 pub struct ClientRouting {
     pub connect_client_actor: Recipient<ConnectClientActor>,
+    pub rpc_message: Recipient<RpcMessage>,
 }
 
 #[macro_export]
@@ -21,6 +22,7 @@ macro_rules! wrap_addr_as_routing {
     ($addr:expr) => {
         $crate::ClientRouting {
             connect_client_actor: $addr.clone().recipient(),
+            rpc_message: $addr.clone().recipient(),
         }
     }
 }
@@ -84,8 +86,29 @@ impl Actor for ClientActor {
     }
 }
 
-impl StreamHandler<Frame, WsProtocolError> for ClientActor {
-    fn handle(&mut self, _msg: Frame, _ctx: &mut Self::Context) {
+impl StreamHandler<ws::Frame, WsProtocolError> for ClientActor {
+    fn handle(&mut self, msg: ws::Frame, _ctx: &mut Self::Context) {
+        match msg {
+            ws::Frame::Ping(msg) => {
+                (self.write_fn)(ws::Message::Pong(msg)).unwrap();
+            },
+            ws::Frame::Text(Some(txt)) => {
+                let txt = String::from_utf8(Vec::from(txt.as_ref())).unwrap();
+                let request: JrpcMessage = serde_json::from_str(&txt).unwrap();
+                self.routing.rpc_message.do_send(RpcMessage {
+                    idx: Some(self.idx),
+                    method: request.method,
+                    params: request.params,
+                }).unwrap();
+            },
+            ws::Frame::Close(_) => {
+                (self.write_fn)(ws::Message::Close(Some(ws::CloseReason {
+                    code: ws::CloseCode::Normal,
+                    description: None,
+                }))).unwrap();
+            },
+            _ => (),
+        }
     }
 }
 
@@ -104,6 +127,6 @@ impl Handler<RpcMessage> for ClientActor {
             id: None,
             params: msg.params.into(),
         };
-        (self.write_fn)(awc::ws::Message::Text(serde_json::to_string(&response).unwrap())).unwrap();
+        (self.write_fn)(ws::Message::Text(serde_json::to_string(&response).unwrap())).unwrap();
     }
 }
