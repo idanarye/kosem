@@ -12,6 +12,7 @@ flexi_logger = "0.14.0"
 config = "0.9.3"
 serde = { version = "1.0.97", features = ["derive"] }
 gtk = "0.7.0"
+gio = ""
 actix = "0.8.3"
 awc = "0.2.2"
 futures = "0.1.28"

@@ -11,3 +11,9 @@ pub struct ProcedureAvailable {
 impl Message for ProcedureAvailable {
     type Result = ();
 }
+
+pub struct TmpButtonClicked;
+
+impl Message for TmpButtonClicked {
+    type Result = ();
+}

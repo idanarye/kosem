@@ -11,6 +11,7 @@ fn main() -> Result<(), String> {
     log::warn!("{:?}", settings);
 
     kosem_gui::actors::launcher::start(settings);
+    // kosem_gui::gtk_gui::launch_gtk_app(settings);
 
     Ok(())
 }

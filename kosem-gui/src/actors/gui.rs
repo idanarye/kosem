@@ -19,3 +19,11 @@ impl Handler<ProcedureAvailable> for GuiActor {
         log::info!("Gui knows that procedure is available: {}", msg.name);
     }
 }
+
+impl Handler<TmpButtonClicked> for GuiActor {
+    type Result = <TmpButtonClicked as actix::Message>::Result;
+
+    fn handle(&mut self, _msg: TmpButtonClicked, _ctx: &mut Self::Context) -> Self::Result {
+        log::warn!("Gui knows that tmp button is clicked");
+    }
+}
