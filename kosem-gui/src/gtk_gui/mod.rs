@@ -17,7 +17,8 @@ pub fn launch_gtk_app(gui_actor: Addr<GuiActor>, receiver: glib::Receiver<Messag
     {
         let hierarchy = hierarchy.clone();
         application.connect_activate(move |app| {
-            let gtk_gui = hierarchy::GtkGui::create_and_activate(gui_actor.clone(), app);
+            let gtk_gui = hierarchy::GtkGui::create(gui_actor.clone(), app);
+            gtk_gui.procedure_picking_window.activate();
             hierarchy.replace(Some(gtk_gui));
         });
     }

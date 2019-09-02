@@ -20,15 +20,6 @@ impl Handler<ProcedureAvailable> for GuiActor {
 
     fn handle(&mut self, msg: ProcedureAvailable, _ctx: &mut Self::Context) -> Self::Result {
         log::info!("Gui knows that procedure is available: {}", msg.name);
-    }
-}
-
-impl Handler<TmpButtonClicked> for GuiActor {
-    type Result = <TmpButtonClicked as actix::Message>::Result;
-
-    fn handle(&mut self, _msg: TmpButtonClicked, _ctx: &mut Self::Context) -> Self::Result {
-        log::warn!("Gui knows that tmp button is clicked");
-        log::warn!("Gui will now say hello");
-        self.gui_channel.send(MessageToGui::TmpSayHello()).unwrap();
+        self.gui_channel.send(MessageToGui::ProcedureAvailable(msg)).unwrap();
     }
 }
