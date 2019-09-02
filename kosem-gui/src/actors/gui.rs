@@ -5,7 +5,10 @@ use crate::internal_messages::gui_control::*;
 
 #[derive(typed_builder::TypedBuilder)]
 pub struct GuiActor {
+    #[allow(unused)]
     client: Addr<GuiClientActor>,
+    #[allow(unused)]
+    gui_channel: glib::Sender<MessageToGui>,
 }
 
 impl Actor for GuiActor {
@@ -25,5 +28,7 @@ impl Handler<TmpButtonClicked> for GuiActor {
 
     fn handle(&mut self, _msg: TmpButtonClicked, _ctx: &mut Self::Context) -> Self::Result {
         log::warn!("Gui knows that tmp button is clicked");
+        log::warn!("Gui will now say hello");
+        self.gui_channel.send(MessageToGui::TmpSayHello()).unwrap();
     }
 }

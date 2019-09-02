@@ -17,3 +17,8 @@ pub struct TmpButtonClicked;
 impl Message for TmpButtonClicked {
     type Result = ();
 }
+
+#[derive(Debug)]
+pub enum MessageToGui {
+    TmpSayHello(),
+}

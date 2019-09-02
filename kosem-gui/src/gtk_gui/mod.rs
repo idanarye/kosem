@@ -3,8 +3,9 @@ use gtk::prelude::*;
 use gio::prelude::*;
 
 use crate::actors::gui::GuiActor;
+use crate::internal_messages::gui_control::MessageToGui;
 
-pub fn launch_gtk_app(gui_actor: Addr<GuiActor>) {
+pub fn launch_gtk_app(gui_actor: Addr<GuiActor>, receiver: glib::Receiver<MessageToGui>) {
     let application = gtk::Application::new(Some("kosem.gtk-gui"), Default::default()).unwrap();
 
     application.connect_activate(move |app| {
@@ -22,6 +23,12 @@ pub fn launch_gtk_app(gui_actor: Addr<GuiActor>) {
 
         window.show_all();
     });
+
+    receiver.attach(None, move |msg| {
+        log::warn!("Gui got {:?}", msg);
+        glib::Continue(true)
+    });
+
 
     application.run(&[]);
 }
