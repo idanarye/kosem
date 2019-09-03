@@ -34,6 +34,7 @@ impl Message for RemoveAvailableHuman {
     type Result = ();
 }
 
+#[derive(Clone)]
 pub struct RemoveRequestForHuman {
     pub uid: Uuid,
 }

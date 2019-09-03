@@ -20,3 +20,12 @@ pub struct AvailableProcedure {
 impl Message for AvailableProcedure {
     type Result = ();
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct UnavailableProcedure {
+    pub uid: Uuid,
+}
+
+impl Message for UnavailableProcedure {
+    type Result = ();
+}

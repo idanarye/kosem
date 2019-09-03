@@ -23,3 +23,12 @@ impl Handler<ProcedureAvailable> for GuiActor {
         self.gui_channel.send(MessageToGui::ProcedureAvailable(msg)).unwrap();
     }
 }
+
+impl Handler<ProcedureUnavailable> for GuiActor {
+    type Result = <ProcedureUnavailable as actix::Message>::Result;
+
+    fn handle(&mut self, msg: ProcedureUnavailable, _ctx: &mut Self::Context) -> Self::Result {
+        log::info!("Gui knows that procedure is no longer available: {}", msg.procedure_uid);
+        self.gui_channel.send(MessageToGui::ProcedureUnavailable(msg)).unwrap();
+    }
+}

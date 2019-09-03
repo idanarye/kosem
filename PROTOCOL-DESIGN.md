@@ -8,6 +8,8 @@
     * Should this be automatically, or should the human send something like `ListAvailableProcedures`?
 * Human sends `JoinProcedure`.
 * If the join is successful - both procedure and human receive `JoinConfirmation`.
+* Once a procedure gets its human, all other humans will get `UnavailableProcedure`.
+    * If a procedure disconnects all humans receive this.
 
 Once enough humans have joined, the procedure can start the test. It is up to the test to wait for all procedures - it does not need to notify the server.
 

@@ -24,8 +24,8 @@ pub fn launch_gtk_app(gui_actor: Addr<GuiActor>, receiver: glib::Receiver<Messag
     }
 
     receiver.attach(None, move |msg| {
-        let hierarchy = hierarchy.borrow();
-        if let Some(gtk_gui) = hierarchy.as_ref() {
+        let mut hierarchy = hierarchy.borrow_mut();
+        if let Some(gtk_gui) = hierarchy.as_mut() {
             gtk_gui.message_received(msg);
         }
         glib::Continue(true)

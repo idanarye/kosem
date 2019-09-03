@@ -49,6 +49,9 @@ impl actix::Handler<RemoveRequestForHuman> for PairingActor {
     type Result = ();
 
     fn handle(&mut self, msg: RemoveRequestForHuman, _ctx: &mut Self::Context) -> Self::Result {
+        for human in self.available_humans.values() {
+            human.addr.do_send(msg.clone());
+        }
         self.procedures_requesting_humans.remove(&msg.uid);
     }
 }

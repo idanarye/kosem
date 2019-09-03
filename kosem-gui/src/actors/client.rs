@@ -26,6 +26,7 @@ use kosem_webapi::handshake_messages::{
 };
 use kosem_webapi::pairing_messages::{
     AvailableProcedure,
+    UnavailableProcedure,
 };
 
 use crate::client_config::ClientConfig;
@@ -87,8 +88,15 @@ impl Handler<RpcMessage> for GuiClientActor {
                     name: params.name,
                 });
             },
+            "UnavailableProcedure" => {
+                let params = UnavailableProcedure::deserialize(msg.params).unwrap();
+                self.gui.do_send(ProcedureUnavailable {
+                    server_idx,
+                    procedure_uid: params.uid,
+                });
+            },
             unknown_method => {
-                log::debug!("Unknown method {}", unknown_method);
+                log::warn!("Unknown method {}", unknown_method);
             },
         }
     }

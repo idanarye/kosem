@@ -6,7 +6,12 @@ use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
 use crate::role_actors::PairingActor;
 
 use crate::internal_messages::connection::{RpcMessage, ConnectionClosed};
-use crate::internal_messages::pairing::{HumanAvailable, ProcedureRequestingHuman, RemoveAvailableHuman};
+use crate::internal_messages::pairing::{
+    HumanAvailable,
+    ProcedureRequestingHuman,
+    RemoveRequestForHuman,
+    RemoveAvailableHuman,
+};
 
 pub struct HumanActor {
     con_actor: actix::Addr<WsJrpc>,
@@ -62,6 +67,16 @@ impl actix::Handler<ProcedureRequestingHuman> for HumanActor {
         self.con_actor.do_send(RpcMessage::new("AvailableProcedure", kosem_webapi::pairing_messages::AvailableProcedure {
             uid: msg.uid,
             name: msg.orig_request.name,
+        }));
+    }
+}
+
+impl actix::Handler<RemoveRequestForHuman> for HumanActor {
+    type Result = ();
+
+    fn handle(&mut self, msg: RemoveRequestForHuman, _ctx: &mut Self::Context) -> Self::Result {
+        self.con_actor.do_send(RpcMessage::new("UnavailableProcedure", kosem_webapi::pairing_messages::UnavailableProcedure {
+            uid: msg.uid,
         }));
     }
 }

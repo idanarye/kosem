@@ -14,6 +14,17 @@ impl Message for ProcedureAvailable {
 }
 
 #[derive(Debug)]
+pub struct ProcedureUnavailable {
+    pub server_idx: usize,
+    pub procedure_uid: Uuid,
+}
+
+impl Message for ProcedureUnavailable {
+    type Result = ();
+}
+
+#[derive(Debug)]
 pub enum MessageToGui {
     ProcedureAvailable(ProcedureAvailable),
+    ProcedureUnavailable(ProcedureUnavailable),
 }
