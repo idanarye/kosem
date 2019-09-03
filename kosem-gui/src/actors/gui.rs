@@ -32,3 +32,12 @@ impl Handler<ProcedureUnavailable> for GuiActor {
         self.gui_channel.send(MessageToGui::ProcedureUnavailable(msg)).unwrap();
     }
 }
+
+impl Handler<UserSelectedProcedure> for GuiActor {
+    type Result = <UserSelectedProcedure as actix::Message>::Result;
+
+    fn handle(&mut self, msg: UserSelectedProcedure, _ctx: &mut Self::Context) -> Self::Result {
+        log::info!("User selected procedure: {}", msg.procedure_uid);
+        self.client.do_send(msg);
+    }
+}

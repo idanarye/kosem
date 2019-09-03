@@ -29,3 +29,12 @@ pub struct UnavailableProcedure {
 impl Message for UnavailableProcedure {
     type Result = ();
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct JoinProcedure {
+    pub uid: Uuid,
+}
+
+impl Message for JoinProcedure {
+    type Result = ();
+}

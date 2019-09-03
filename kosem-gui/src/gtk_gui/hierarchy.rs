@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use actix::prelude::*;
 use gtk::prelude::*;
+use gio::prelude::*;
 
 use kosem_webapi::Uuid;
 
@@ -17,9 +18,9 @@ pub struct GtkGui {
 impl GtkGui {
     pub fn create(gui_actor: Addr<GuiActor>, app: &gtk::Application) -> Self {
         GtkGui {
-            gui_actor,
+            gui_actor: gui_actor.clone(),
             application: app.clone(),
-            procedure_picking_window: ProcedurePickingWindow::create(app),
+            procedure_picking_window: ProcedurePickingWindow::create(gui_actor, app),
         }
     }
 
@@ -30,20 +31,21 @@ impl GtkGui {
                 self.procedure_picking_window.on_procedure_available(msg);
             },
             MessageToGui::ProcedureUnavailable(msg) => {
-                self.procedure_picking_window.on_procedure_unavailable(msg);
+                self.procedure_picking_window.on_procedure_unavailable(msg.procedure_uid);
             },
         }
     }
 }
 
 pub struct ProcedurePickingWindow {
+    gui_actor: Addr<GuiActor>,
     window: gtk::ApplicationWindow,
     procedures_list: gtk::ListBox,
     procedure_request_rows: HashMap<Uuid, gtk::ListBoxRow>,
 }
 
 impl ProcedurePickingWindow {
-    fn create(app: &gtk::Application) -> Self {
+    fn create(gui_actor: Addr<GuiActor>, app: &gtk::Application) -> Self {
         let window = gtk::ApplicationWindow::new(app);
         window.set_title("Kosem");
 
@@ -51,6 +53,7 @@ impl ProcedurePickingWindow {
         window.add(&procedures_list);
 
         Self {
+            gui_actor,
             window,
             procedures_list,
             procedure_request_rows: HashMap::new(),
@@ -66,12 +69,19 @@ impl ProcedurePickingWindow {
         row.add(&gtk::Label::new(Some(&msg.name)));
         self.procedures_list.add(&row);
         self.procedures_list.show_all();
-        self.procedure_request_rows.insert(msg.procedure_uid, row);
+        self.procedure_request_rows.insert(msg.procedure_uid, row.clone());
+        let gui_actor = self.gui_actor.clone();
+        row.connect_activate(move |row| {
+            log::warn!("User selecting this row");
+            gui_actor.do_send(UserSelectedProcedure {
+                server_idx: msg.server_idx,
+                procedure_uid: msg.procedure_uid,
+            });
+        });
     }
 
-    pub fn on_procedure_unavailable(&mut self, msg: ProcedureUnavailable) {
-        log::warn!("on_procedure_unavailable({:?})", msg);
-        let row = if let Some(row) = self.procedure_request_rows.remove(&msg.procedure_uid) {
+    pub fn on_procedure_unavailable(&mut self, procedure_uid: Uuid) {
+        let row = if let Some(row) = self.procedure_request_rows.remove(&procedure_uid) {
             row
         } else {
             return;

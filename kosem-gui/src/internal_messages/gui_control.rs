@@ -28,3 +28,13 @@ pub enum MessageToGui {
     ProcedureAvailable(ProcedureAvailable),
     ProcedureUnavailable(ProcedureUnavailable),
 }
+
+#[derive(Debug)]
+pub struct UserSelectedProcedure {
+    pub server_idx: usize,
+    pub procedure_uid: Uuid,
+}
+
+impl Message for UserSelectedProcedure {
+    type Result = ();
+}

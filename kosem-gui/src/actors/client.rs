@@ -27,6 +27,7 @@ use kosem_webapi::handshake_messages::{
 use kosem_webapi::pairing_messages::{
     AvailableProcedure,
     UnavailableProcedure,
+    JoinProcedure,
 };
 
 use crate::client_config::ClientConfig;
@@ -99,5 +100,18 @@ impl Handler<RpcMessage> for GuiClientActor {
                 log::warn!("Unknown method {}", unknown_method);
             },
         }
+    }
+}
+
+impl Handler<UserSelectedProcedure> for GuiClientActor {
+    type Result = <UserSelectedProcedure as actix::Message>::Result;
+
+    fn handle(&mut self, msg: UserSelectedProcedure, _ctx: &mut Self::Context) -> Self::Result {
+        log::warn!("User selected procedure: {}", msg.procedure_uid);
+        self.client_actors.get(&msg.server_idx).map(|(_, client)| {
+            client.do_send(RpcMessage::new("JoinProcedure", JoinProcedure {
+                uid: msg.procedure_uid,
+            }));
+        });
     }
 }
