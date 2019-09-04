@@ -63,3 +63,35 @@ impl actix::Handler<RemoveAvailableHuman> for PairingActor {
         self.available_humans.remove(&msg.uid);
     }
 }
+
+impl actix::Handler<HumanJoiningProcedure> for PairingActor {
+    type Result = ();
+
+    fn handle(&mut self, msg: HumanJoiningProcedure, _ctx: &mut Self::Context) -> Self::Result {
+        let human_entry = self.available_humans.entry(msg.human_uid);
+        let request_entry = self.procedures_requesting_humans.entry(msg.request_uid);
+        use std::collections::hash_map::Entry;
+        let (human_entry, request_entry) = match (human_entry, request_entry) {
+            (Entry::Occupied(human_entry), Entry::Occupied(request_entry)) => {
+                (human_entry, request_entry)
+            },
+            (_, _) => {
+                // TODO: deal with situations when human or request is missing
+                panic!("Missing entries");
+            },
+        };
+
+        let human = human_entry.remove();
+        let request = request_entry.remove();
+
+        let pairing_performed = PairingPerformed {
+            human_uid: human.uid,
+            human_addr: human.addr,
+            request_uid: request.uid,
+            procedure_addr: request.addr,
+        };
+
+        pairing_performed.human_addr.do_send(pairing_performed.clone());
+        pairing_performed.procedure_addr.clone().do_send(pairing_performed);
+    }
+}

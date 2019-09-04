@@ -24,7 +24,7 @@ impl ActorRoleState {
 
     pub fn send_request_from_connection<'de>(&self, method: &str, params: impl serde::Deserializer<'de>) {
         macro_rules! route {
-            ($( $msg:ident: $($roles:ident),*; )*) => {
+            ($( $msg:ident => $($roles:ident),*; )*) => {
                 match method {
                     $(
                         stringify!($msg) => {
@@ -44,9 +44,10 @@ impl ActorRoleState {
             }
         }
         route! {
-            LoginAsProcedure: NotYetIdentifiedActor;
-            LoginAsHuman: NotYetIdentifiedActor;
-            RequestHuman: ProcedureActor;
+            LoginAsProcedure => NotYetIdentifiedActor;
+            LoginAsHuman => NotYetIdentifiedActor;
+            RequestHuman => ProcedureActor;
+            JoinProcedure => HumanActor;
         }
     }
 

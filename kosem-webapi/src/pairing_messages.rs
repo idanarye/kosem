@@ -38,3 +38,13 @@ pub struct JoinProcedure {
 impl Message for JoinProcedure {
     type Result = ();
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct JoinConfirmation {
+    pub human_uid: Uuid,
+    pub request_uid: Uuid,
+}
+
+impl Message for JoinConfirmation {
+    type Result = ();
+}

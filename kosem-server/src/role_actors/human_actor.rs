@@ -1,6 +1,7 @@
 use actix::prelude::*;
 
 use kosem_webapi::Uuid;
+use kosem_webapi::pairing_messages::*;
 
 use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
 use crate::role_actors::PairingActor;
@@ -11,6 +12,8 @@ use crate::internal_messages::pairing::{
     ProcedureRequestingHuman,
     RemoveRequestForHuman,
     RemoveAvailableHuman,
+    HumanJoiningProcedure,
+    PairingPerformed,
 };
 
 pub struct HumanActor {
@@ -77,6 +80,30 @@ impl actix::Handler<RemoveRequestForHuman> for HumanActor {
     fn handle(&mut self, msg: RemoveRequestForHuman, _ctx: &mut Self::Context) -> Self::Result {
         self.con_actor.do_send(RpcMessage::new("UnavailableProcedure", kosem_webapi::pairing_messages::UnavailableProcedure {
             uid: msg.uid,
+        }));
+    }
+}
+
+impl actix::Handler<JoinProcedure> for HumanActor {
+    type Result = <JoinProcedure as actix::Message>::Result;
+
+    fn handle(&mut self, msg: JoinProcedure, _ctx: &mut actix::Context<Self>) -> Self::Result {
+        log::info!("Human {} joined procedure {}", self.name, msg.uid);
+        PairingActor::from_registry().do_send(HumanJoiningProcedure {
+            human_uid: self.uid,
+            request_uid: msg.uid,
+        });
+    }
+}
+
+impl actix::Handler<PairingPerformed> for HumanActor {
+    type Result = <PairingPerformed as actix::Message>::Result;
+
+    fn handle(&mut self, msg: PairingPerformed, _ctx: &mut actix::Context<Self>) -> Self::Result {
+        log::info!("Paired human {} to request {}", msg.human_uid, msg.request_uid);
+        self.con_actor.do_send(RpcMessage::new("JoinConfirmation", kosem_webapi::pairing_messages::JoinConfirmation {
+            human_uid: msg.human_uid,
+            request_uid: msg.request_uid,
         }));
     }
 }

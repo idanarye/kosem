@@ -9,7 +9,11 @@ use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
 
 use crate::role_actors::PairingActor;
 use crate::internal_messages::connection::{RpcMessage, ConnectionClosed};
-use crate::internal_messages::pairing::{RemoveRequestForHuman, ProcedureRequestingHuman};
+use crate::internal_messages::pairing::{
+    RemoveRequestForHuman,
+    ProcedureRequestingHuman,
+    PairingPerformed,
+};
 
 #[derive(typed_builder::TypedBuilder)]
 pub struct ProcedureActor {
@@ -63,5 +67,24 @@ impl actix::Handler<RequestHuman> for ProcedureActor {
             orig_request: msg,
             addr: ctx.address(),
         });
+    }
+}
+
+impl actix::Handler<PairingPerformed> for ProcedureActor {
+    type Result = <PairingPerformed as actix::Message>::Result;
+
+    fn handle(&mut self, msg: PairingPerformed, _ctx: &mut actix::Context<Self>) -> Self::Result {
+        log::info!("Paired request {} to human {}", msg.request_uid, msg.human_uid);
+        self.pending_requests_for_humans.remove(&msg.request_uid);
+        if self.pending_requests_for_humans.is_empty() {
+            log::info!("Procedure {} got all the humans it needs!", self.name);
+        } else {
+            log::info!("Procedure {} still needs {} more humans...", self.name, self.pending_requests_for_humans.len());
+        }
+
+        self.con_actor.do_send(RpcMessage::new("JoinConfirmation", kosem_webapi::pairing_messages::JoinConfirmation {
+            human_uid: msg.human_uid,
+            request_uid: msg.request_uid,
+        }));
     }
 }
