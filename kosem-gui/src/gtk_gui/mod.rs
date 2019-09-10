@@ -8,6 +8,17 @@ use crate::actors::gui::GuiActor;
 use crate::internal_messages::gui_control::MessageToGui;
 
 mod hierarchy;
+mod glade_templating;
+
+#[derive(rust_embed::RustEmbed)]
+#[folder = "kosem-gui/assets"]
+struct Asset;
+
+impl Asset {
+    pub fn xml_extractor(filename: &str) -> glade_templating::GladeXmlExtractor {
+        glade_templating::GladeXmlExtractor::new(std::str::from_utf8(&Self::get(filename).unwrap()).unwrap())
+    }
+}
 
 pub fn launch_gtk_app(gui_actor: Addr<GuiActor>, receiver: glib::Receiver<MessageToGui>) {
     let hierarchy = Arc::new(RefCell::new(None));
@@ -33,4 +44,5 @@ pub fn launch_gtk_app(gui_actor: Addr<GuiActor>, receiver: glib::Receiver<Messag
 
 
     application.run(&[]);
+    gtk::main();
 }

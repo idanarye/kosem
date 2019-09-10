@@ -22,3 +22,6 @@ typed-builder = "0.3.0"
 
 kosem-webapi = { path = "../kosem-webapi" }
 kosem-base-rpc-client = { path = "../kosem-base-rpc-client" }
+sxd-document = "0.3.2"
+sxd-xpath = "0.4.2"
+rust-embed = "5.1.0"
