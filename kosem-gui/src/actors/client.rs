@@ -28,6 +28,7 @@ use kosem_webapi::pairing_messages::{
     AvailableProcedure,
     UnavailableProcedure,
     JoinProcedure,
+    JoinConfirmation,
 };
 
 use crate::client_config::ClientConfig;
@@ -75,26 +76,45 @@ impl Handler<RpcMessage> for GuiClientActor {
         let config = &self.config.servers[server_idx];
         log::info!("GuiClientActor got {}: {:?} from server {:?}", msg.method, msg.params, config);
 
+        macro_rules! redirect_to_gui {
+            ($($msg:ident),* $(,)?) => {
+                match msg.method.as_ref() {
+                    $(
+                        stringify!($msg) => {
+                            self.gui.do_send(MessageToGui::$msg(MessageFromServer {
+                                server_idx,
+                                msg: $msg::deserialize(msg.params).unwrap(),
+                            }));
+                            return;
+                        }
+                    ),*,
+                    _ => {
+                        if false {
+                            // NOTE: this should fail on "non-exhaustive patterns" if we forget to
+                            // redirect some of the messages supported by `MessageToGui`
+                            match unreachable!() {
+                                $(
+                                    #[allow(unreachable_code)]
+                                    MessageToGui::$msg(_) => unreachable!()
+                                ),*
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        redirect_to_gui!(
+            AvailableProcedure,
+            UnavailableProcedure,
+            JoinConfirmation,
+        );
+
         match msg.method.as_ref() {
             "LoginConfirmed" => {
                 let params = LoginConfirmed::deserialize(msg.params).unwrap();
                 log::info!("Setting uid to {}", params.uid);
                 self.uid = Some(params.uid);
-            },
-            "AvailableProcedure" => {
-                let params = AvailableProcedure::deserialize(msg.params).unwrap();
-                self.gui.do_send(ProcedureAvailable {
-                    server_idx,
-                    procedure_uid: params.uid,
-                    name: params.name,
-                });
-            },
-            "UnavailableProcedure" => {
-                let params = UnavailableProcedure::deserialize(msg.params).unwrap();
-                self.gui.do_send(ProcedureUnavailable {
-                    server_idx,
-                    procedure_uid: params.uid,
-                });
             },
             unknown_method => {
                 log::warn!("Unknown method {}", unknown_method);

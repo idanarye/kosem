@@ -2,9 +2,9 @@ use std::collections::HashMap;
 
 use actix::prelude::*;
 use gtk::prelude::*;
-use gio::prelude::*;
 
 use kosem_webapi::Uuid;
+use kosem_webapi::pairing_messages;
 
 use crate::internal_messages::gui_control::*;
 use crate::actors::gui::GuiActor;
@@ -28,11 +28,14 @@ impl GtkGui {
     pub fn message_received(&mut self, msg: MessageToGui) {
         log::warn!("Gui {:?} got {:?}", self.application, msg);
         match msg {
-            MessageToGui::ProcedureAvailable(msg) => {
+            MessageToGui::AvailableProcedure(msg) => {
                 self.procedure_picking_window.on_procedure_available(msg);
             },
-            MessageToGui::ProcedureUnavailable(msg) => {
-                self.procedure_picking_window.on_procedure_unavailable(msg.procedure_uid);
+            MessageToGui::UnavailableProcedure(msg) => {
+                self.procedure_picking_window.on_procedure_unavailable(msg.msg.uid);
+            },
+            MessageToGui::JoinConfirmation(msg) => {
+                self.procedure_picking_window.on_procedure_unavailable(msg.msg.request_uid);
             },
         }
     }
@@ -47,7 +50,7 @@ pub struct ProcedurePickingWindow {
 }
 
 impl ProcedurePickingWindow {
-    fn create(gui_actor: Addr<GuiActor>, app: &gtk::Application) -> Self {
+    fn create(gui_actor: Addr<GuiActor>, _app: &gtk::Application) -> Self {
         let mut xml_extractor = crate::gtk_gui::Asset::xml_extractor("main_menu.glade");
         let request_row_factory = xml_extractor.extract::<gtk::ListBoxRow>("request_row");
 
@@ -70,17 +73,17 @@ impl ProcedurePickingWindow {
         self.window.show_all();
     }
 
-    pub fn on_procedure_available(&mut self, msg: ProcedureAvailable) {
+    pub fn on_procedure_available(&mut self, msg: MessageFromServer<pairing_messages::AvailableProcedure>) {
         let gui_actor = self.gui_actor.clone();
-        let procedure_uid = msg.procedure_uid;
+        let procedure_uid = msg.msg.uid;
         let row = self.request_row_factory.build()
-            .modify_child("request_name", |label: gtk::Label| label.set_text(&msg.name))
+            .modify_child("request_name", |label: gtk::Label| label.set_text(&msg.msg.name))
             .modify_child("join_request", move |button: gtk::Button| {
                 button.connect_clicked(move |_| {
                     log::warn!("User selecting this request");
                     gui_actor.do_send(UserSelectedProcedure {
                         server_idx: msg.server_idx,
-                        procedure_uid: msg.procedure_uid,
+                        procedure_uid: msg.msg.uid,
                     });
                 });
             })

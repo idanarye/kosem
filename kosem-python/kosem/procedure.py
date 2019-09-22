@@ -8,6 +8,7 @@ class KosemProcedure(object):
         self._login()
 
     def _login(self):
-        self._con.call('LoginAsProcedure', name='doctor test')
-        while not hasattr(self._con, 'uid'):
-            time.sleep(0.001)
+        for msg in self._con.notify_and_stream('LoginAsProcedure', name=self.name):
+            if msg['method'] == 'LoginConfirmed':
+                self.uid = msg['params']['uid']
+                return

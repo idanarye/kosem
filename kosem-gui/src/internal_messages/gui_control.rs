@@ -1,32 +1,27 @@
 use actix::Message;
 
 use kosem_webapi::Uuid;
+use kosem_webapi::pairing_messages;
 
 #[derive(Debug)]
-pub struct ProcedureAvailable {
+pub struct MessageFromServer<T> {
     pub server_idx: usize,
-    pub procedure_uid: Uuid,
-    pub name: String,
+    pub msg: T,
 }
 
-impl Message for ProcedureAvailable {
-    type Result = ();
-}
-
-#[derive(Debug)]
-pub struct ProcedureUnavailable {
-    pub server_idx: usize,
-    pub procedure_uid: Uuid,
-}
-
-impl Message for ProcedureUnavailable {
+impl<T> Message for MessageFromServer<T> {
     type Result = ();
 }
 
 #[derive(Debug)]
 pub enum MessageToGui {
-    ProcedureAvailable(ProcedureAvailable),
-    ProcedureUnavailable(ProcedureUnavailable),
+    AvailableProcedure(MessageFromServer<pairing_messages::AvailableProcedure>),
+    UnavailableProcedure(MessageFromServer<pairing_messages::UnavailableProcedure>),
+    JoinConfirmation(MessageFromServer<pairing_messages::JoinConfirmation>),
+}
+
+impl Message for MessageToGui {
+    type Result = ();
 }
 
 #[derive(Debug)]

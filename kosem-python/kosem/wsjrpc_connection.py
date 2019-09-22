@@ -1,57 +1,70 @@
 import itertools
 import json
-import threading
+from threading import Lock
 
 import websocket
 
+from .multiqueue import MultiQueue
+
+
 class KosemWsJrpcConnection(object):
     def __init__(self, host, port):
-        self.__con = websocket.create_connection('ws://{host}:{port}/ws-jrpc'.format_map(locals()))
+        self.__con = websocket.create_connection(
+            'ws://{host}:{port}/ws-jrpc'.format_map(locals()),
+            timeout=1)
         self.__message_ids = itertools.count(1)
-        self.__thread = threading.Thread(target=self.__recieve, daemon=True)
-        self.__thread.start()
-        self.__queue = []
+        self.__messages_received = 0
+        self.__lock = Lock()
+        self.__queue = MultiQueue()
 
     def close(self):
         self.__con.close()
 
     def notify(self, method, **kwargs):
-        message = dict(
+        msg = dict(
             jsonrpc="2.0",
             method=method,
             params=kwargs)
 
-        self.__con.send(json.dumps(message))
+        self.__con.send(json.dumps(msg))
+
+    def notify_and_stream(self, method, **kwargs):
+        stream = self.stream_messages()
+        self.notify(method, **kwargs)
+        return stream
 
     def call(self, method, *args, **kwargs):
         assert not (args and kwargs), 'both args and kwargs specified'
 
         message_id = next(self.__message_ids)
 
-        message = dict(
+        msg = dict(
             jsonrpc="2.0",
             id=message_id,
             method=method,
             params=args or kwargs)
 
-        self.__con.send(json.dumps(message))
+        self.__con.send(json.dumps(msg))
 
-    def __recieve(self):
+    def stream_messages(self):
+        receiver = self.__queue.receiver()
         while True:
+            current_messages_received = self.__messages_received
             try:
-                raw_message = self.__con.recv()
-            except websocket.WebSocketConnectionClosedException:
-                return
-            if raw_message:
-                message = json.loads(raw_message)
-                if message['method'] == 'LoginConfirmed':
-                    self.uid = message['params']['uid']
-                else:
-                    self.__queue.append(message)
-
-    def receive(self):
-        return self.__queue.pop(0)
-
-    def receive_all(self):
-        while self.__queue:
-            yield self.__queue.pop(0)
+                msg = next(receiver)
+            except StopIteration:
+                with self.__lock:
+                    if current_messages_received < self.__messages_received:
+                        # We got new messages from another thread
+                        continue
+                    try:
+                        raw_message = self.__con.recv()
+                    except websocket.WebSocketTimeoutException:
+                        continue
+                    except websocket.WebSocketConnectionClosedException:
+                        return
+                    msg = json.loads(raw_message)
+                    self.__queue.enqueue(msg)
+                    self.__messages_received += 1
+            else:
+                yield msg
