@@ -2,6 +2,7 @@ use std::sync::Arc;
 use std::cell::RefCell;
 
 use actix::prelude::*;
+use gtk::prelude::*;
 use gio::prelude::*;
 
 use crate::actors::gui::GuiActor;
@@ -17,6 +18,12 @@ struct Asset;
 impl Asset {
     pub fn xml_extractor(filename: &str) -> glade_templating::GladeXmlExtractor {
         glade_templating::GladeXmlExtractor::new(std::str::from_utf8(&Self::get(filename).unwrap()).unwrap())
+    }
+
+    pub fn css_provider(filename: &str) -> gtk::CssProvider {
+        let css_provider = gtk::CssProvider::new();
+        css_provider.load_from_data(crate::gtk_gui::Asset::get(filename).unwrap().as_ref()).unwrap();
+        css_provider
     }
 }
 

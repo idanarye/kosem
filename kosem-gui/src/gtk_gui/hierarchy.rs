@@ -11,6 +11,7 @@ use crate::actors::gui::GuiActor;
 use crate::gtk_gui::glade_templating::GladeFactory;
 
 pub struct GtkGui {
+    #[allow(dead_code)]
     gui_actor: Addr<GuiActor>,
     application: gtk::Application,
     pub procedure_picking_window: ProcedurePickingWindow,
@@ -57,6 +58,11 @@ impl ProcedurePickingWindow {
         let builder = xml_extractor.build_rest();
 
         let window: gtk::ApplicationWindow = builder.get_object("procedure_picking_window").unwrap();
+        let css_provider = crate::gtk_gui::Asset::css_provider("default.css");
+        gtk::StyleContext::add_provider_for_screen(
+            &window.get_screen().unwrap(),
+            &css_provider,
+            gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
 
         let procedures_list: gtk::ListBox = builder.get_object("procedures_list").unwrap();
 
