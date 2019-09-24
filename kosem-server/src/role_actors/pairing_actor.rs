@@ -93,5 +93,13 @@ impl actix::Handler<HumanJoiningProcedure> for PairingActor {
 
         pairing_performed.human_addr.do_send(pairing_performed.clone());
         pairing_performed.procedure_addr.clone().do_send(pairing_performed);
+
+        // NOTE: this does not include the human that accepted the request, because they were just
+        // removed.
+        for human in self.available_humans.values() {
+            human.addr.do_send(RemoveRequestForHuman {
+                uid: request.uid,
+            });
+        }
     }
 }

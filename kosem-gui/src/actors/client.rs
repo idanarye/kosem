@@ -77,40 +77,49 @@ impl Handler<RpcMessage> for GuiClientActor {
         log::info!("GuiClientActor got {}: {:?} from server {:?}", msg.method, msg.params, config);
 
         macro_rules! redirect_to_gui {
-            ($($msg:ident),* $(,)?) => {
-                match msg.method.as_ref() {
-                    $(
-                        stringify!($msg) => {
-                            self.gui.do_send(MessageToGui::$msg(MessageFromServer {
-                                server_idx,
-                                msg: $msg::deserialize(msg.params).unwrap(),
-                            }));
-                            return;
+            (
+                join_screen = {
+                    $($msg:ident),
+                    * $(,)?
+                }
+                $(
+                    $pattern:pat => $expr:expr
+                ),*$(,)?
+            ) => {
+                {
+                    if false {
+                        // NOTE: this should fail on "non-exhaustive patterns" if we forget to
+                        // redirect some of the messages supported by `MessageToGui`
+                        match unreachable!() {
+                            $(
+                                #[allow(unreachable_code)]
+                                MessageToGui::$msg(_) => unreachable!()
+                            ),*
                         }
-                    ),*,
-                    _ => {
-                        if false {
-                            // NOTE: this should fail on "non-exhaustive patterns" if we forget to
-                            // redirect some of the messages supported by `MessageToGui`
-                            match unreachable!() {
-                                $(
-                                    #[allow(unreachable_code)]
-                                    MessageToGui::$msg(_) => unreachable!()
-                                ),*
+                    }
+                    match msg.method.as_ref() {
+                        $(
+                            stringify!($msg) => {
+                                self.gui.do_send(MessageToGui::$msg(MessageFromServer {
+                                    server_idx,
+                                    msg: $msg::deserialize(msg.params).unwrap(),
+                                }));
                             }
-                        }
+                        ),*,
+                        $(
+                            $pattern => $expr
+                        ),*
                     }
                 }
             }
         }
 
         redirect_to_gui!(
-            AvailableProcedure,
-            UnavailableProcedure,
-            JoinConfirmation,
-        );
-
-        match msg.method.as_ref() {
+            join_screen = {
+                AvailableProcedure,
+                UnavailableProcedure,
+                JoinConfirmation,
+            }
             "LoginConfirmed" => {
                 let params = LoginConfirmed::deserialize(msg.params).unwrap();
                 log::info!("Setting uid to {}", params.uid);
@@ -118,8 +127,8 @@ impl Handler<RpcMessage> for GuiClientActor {
             },
             unknown_method => {
                 log::warn!("Unknown method {}", unknown_method);
-            },
-        }
+            }
+        );
     }
 }
 
