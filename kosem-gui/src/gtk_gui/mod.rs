@@ -8,8 +8,12 @@ use gio::prelude::*;
 use crate::actors::gui::GuiActor;
 use crate::internal_messages::gui_control::MessageToGui;
 
-mod hierarchy;
+mod gui_root;
 mod glade_templating;
+mod glade_factories;
+mod join_screen;
+
+use glade_factories::GladeFactories;
 
 #[derive(rust_embed::RustEmbed)]
 #[folder = "kosem-gui/assets"]
@@ -28,22 +32,22 @@ impl Asset {
 }
 
 pub fn launch_gtk_app(gui_actor: Addr<GuiActor>, receiver: glib::Receiver<MessageToGui>) {
-    let hierarchy = Arc::new(RefCell::new(None));
+    let gui_root = Arc::new(RefCell::new(None));
 
     let application = gtk::Application::new(Some("kosem.gtk-gui"), Default::default()).unwrap();
 
     {
-        let hierarchy = hierarchy.clone();
+        let gui_root = gui_root.clone();
         application.connect_activate(move |app| {
-            let gtk_gui = hierarchy::GtkGui::create(gui_actor.clone(), app);
+            let gtk_gui = gui_root::GtkGui::create(gui_actor.clone(), app);
             gtk_gui.procedure_picking_window.activate();
-            hierarchy.replace(Some(gtk_gui));
+            gui_root.replace(Some(gtk_gui));
         });
     }
 
     receiver.attach(None, move |msg| {
-        let mut hierarchy = hierarchy.borrow_mut();
-        if let Some(gtk_gui) = hierarchy.as_mut() {
+        let mut gui_root = gui_root.borrow_mut();
+        if let Some(gtk_gui) = gui_root.as_mut() {
             gtk_gui.message_received(msg);
         }
         glib::Continue(true)

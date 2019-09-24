@@ -66,14 +66,6 @@ impl GladeXmlExtractor {
             _phantom: Default::default(),
         }
     }
-
-    pub fn dump_rest(self) -> String {
-        package_to_string(&self.package)
-    }
-
-    pub fn build_rest(self) -> gtk::Builder {
-        gtk::Builder::new_from_string(&self.dump_rest())
-    }
 }
 
 fn package_to_string(package: &sxd_document::Package) -> String {
@@ -111,7 +103,12 @@ impl<T: IsA<gtk::Object>> GladeTemplatedInstance<T> {
         dlg(self.builder.get_object(id).unwrap());
         self
     }
-    pub fn build(self) -> T {
+
+    pub fn get_object<S: IsA<gtk::Object>>(&self, object_id: &str) -> S {
+        self.builder.get_object(object_id).unwrap()
+    }
+
+    pub fn get(&self) -> T {
         self.builder.get_object(self.element_id).unwrap()
     }
 }
