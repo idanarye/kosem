@@ -11,15 +11,18 @@ use crate::internal_messages::gui_control::*;
 use crate::actors::gui::GuiActor;
 use crate::gtk_gui::GladeFactories;
 
-pub struct JoinWindow {
+pub struct JoinMenuWindow {
     gui_actor: Addr<GuiActor>,
     window: gtk::ApplicationWindow,
-    procedures_list: gtk::ListBox,
     factories: Rc<GladeFactories>,
-    procedure_request_rows: HashMap<Uuid, gtk::ListBoxRow>,
+    procedures_list: gtk::ListBox,
+    procedure_requests: HashMap<Uuid, (
+        MessageFromServer<pairing_messages::AvailableProcedure>,
+        gtk::ListBoxRow,
+    )>,
 }
 
-impl JoinWindow {
+impl JoinMenuWindow {
     pub fn create(gui_actor: Addr<GuiActor>, factories: Rc<GladeFactories>) -> Self {
         let window_builder = factories.join_menu.window.build();
 
@@ -35,9 +38,9 @@ impl JoinWindow {
         Self {
             gui_actor,
             window,
-            procedures_list,
             factories,
-            procedure_request_rows: HashMap::new(),
+            procedures_list,
+            procedure_requests: HashMap::new(),
         }
     }
 
@@ -45,31 +48,40 @@ impl JoinWindow {
         self.window.show_all();
     }
 
+    pub fn deactivate(&self) {
+        self.window.hide();
+    }
+
     pub fn on_procedure_available(&mut self, msg: MessageFromServer<pairing_messages::AvailableProcedure>) {
         let gui_actor = self.gui_actor.clone();
-        let procedure_uid = msg.msg.uid;
         let row = self.factories.join_menu.request_row.build()
             .modify_child("request_name", |label: gtk::Label| label.set_text(&msg.msg.name))
-            .modify_child("join_request", move |button: gtk::Button| {
-                button.connect_clicked(move |_| {
-                    log::warn!("User selecting this request");
-                    gui_actor.do_send(UserSelectedProcedure {
-                        server_idx: msg.server_idx,
-                        procedure_uid: msg.msg.uid,
+            .modify_child("join_request", {
+                let msg = msg.clone();
+                move |button: gtk::Button| {
+                    button.connect_clicked(move |_| {
+                        log::warn!("User selecting this request");
+                        gui_actor.do_send(UserSelectedProcedure {
+                            server_idx: msg.server_idx,
+                            procedure_uid: msg.msg.uid,
+                        });
                     });
-                });
-            })
+                }})
         .get();
         self.procedures_list.add(&row);
-        self.procedure_request_rows.insert(procedure_uid, row);
+        self.procedure_requests.insert(msg.msg.uid, (msg, row));
     }
 
     pub fn on_procedure_unavailable(&mut self, procedure_uid: Uuid) {
-        let row = if let Some(row) = self.procedure_request_rows.remove(&procedure_uid) {
+        let row = if let Some((_msg, row)) = self.procedure_requests.remove(&procedure_uid) {
             row
         } else {
             return;
         };
         self.procedures_list.remove(&row);
+    }
+
+    pub fn get_procedure_request(&self, procedure_uid: Uuid) -> Option<&MessageFromServer<pairing_messages::AvailableProcedure>> {
+        self.procedure_requests.get(&procedure_uid).map(|(msg, _row)| msg)
     }
 }

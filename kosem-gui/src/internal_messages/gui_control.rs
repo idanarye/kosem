@@ -3,7 +3,7 @@ use actix::Message;
 use kosem_webapi::Uuid;
 use kosem_webapi::pairing_messages;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct MessageFromServer<T> {
     pub server_idx: usize,
     pub msg: T,

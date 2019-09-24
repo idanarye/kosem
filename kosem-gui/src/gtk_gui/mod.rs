@@ -11,7 +11,8 @@ use crate::internal_messages::gui_control::MessageToGui;
 mod gui_root;
 mod glade_templating;
 mod glade_factories;
-mod join_screen;
+mod join_menu;
+mod work_on_procedure;
 
 use glade_factories::GladeFactories;
 
