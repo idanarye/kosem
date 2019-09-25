@@ -9,10 +9,8 @@ use crate::gtk_gui::join_menu::JoinMenuWindow;
 use crate::gtk_gui::work_on_procedure::WorkOnProcedureWindow;
 
 pub struct GtkGui {
-    #[allow(dead_code)]
     gui_actor: Addr<GuiActor>,
     application: gtk::Application,
-    #[allow(dead_code)]
     factories: Rc<GladeFactories>,
     pub procedure_picking_window: JoinMenuWindow,
 }
