@@ -93,6 +93,7 @@ impl actix::Handler<JoinProcedure> for HumanActor {
             human_uid: self.uid,
             request_uid: msg.uid,
         });
+        Ok(())
     }
 }
 

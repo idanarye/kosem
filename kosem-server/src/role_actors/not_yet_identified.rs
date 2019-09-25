@@ -1,5 +1,6 @@
 use actix::prelude::*;
 
+use kosem_webapi::Uuid;
 use kosem_webapi::handshake_messages::*;
 
 use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
@@ -33,15 +34,17 @@ impl actix::Handler<LoginAsProcedure> for NotYetIdentifiedActor {
 
     fn handle(&mut self, msg: LoginAsProcedure, ctx: &mut actix::Context<Self>) -> Self::Result {
         log::info!("LoginAsProcedure: {:?}", msg);
-        let actor = ProcedureActor::builder().con_actor(self.con_actor.clone()).name(msg.name).build();
+        let procedure_uid = Uuid::new_v4();
+        let actor = ProcedureActor::builder().uid(procedure_uid).con_actor(self.con_actor.clone()).name(msg.name).build();
         let actor = actor.start();
         self.con_actor.do_send(SetRole::Procedure(actor));
         ctx.stop();
+        Ok(procedure_uid)
     }
 }
 
 impl actix::Handler<LoginAsHuman> for NotYetIdentifiedActor {
-    type Result = <LoginAsProcedure as actix::Message>::Result;
+    type Result = <LoginAsHuman as actix::Message>::Result;
 
     fn handle(&mut self, msg: LoginAsHuman, ctx: &mut actix::Context<Self>) -> Self::Result {
         log::info!("LoginAsHuman: {:?}", msg);
@@ -49,5 +52,6 @@ impl actix::Handler<LoginAsHuman> for NotYetIdentifiedActor {
         let actor = actor.start();
         self.con_actor.do_send(SetRole::Human(actor));
         ctx.stop();
+        Ok(())
     }
 }

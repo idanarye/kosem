@@ -1,6 +1,6 @@
 * Server goes up.
 * Procedure sends `LoginAsProcedure`.
-    * Server replies with `LoginConfirmed`, that contains the role and a UUID.
+    * Server returns the UUID.
 * Procedure sends `RequestHuman`.
 * Human sends `LoginAsHuman`.
     * Server replies with `LoginConfirmed`, that contains the role and a UUID.

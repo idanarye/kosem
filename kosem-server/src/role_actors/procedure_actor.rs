@@ -18,8 +18,7 @@ use crate::internal_messages::pairing::{
 #[derive(typed_builder::TypedBuilder)]
 pub struct ProcedureActor {
     con_actor: actix::Addr<WsJrpc>,
-    #[builder(default=Uuid::new_v4())]
-    uid: Uuid,
+    pub uid: Uuid,
     name: String,
     #[builder(default)]
     pending_requests_for_humans: HashSet<Uuid>,
@@ -30,11 +29,6 @@ impl actix::Actor for ProcedureActor {
 
     fn started(&mut self, _ctx: &mut Self::Context) {
         log::info!("Starting ProcedureActor {} - {}", self.uid, self.name);
-        let response = kosem_webapi::handshake_messages::LoginConfirmed {
-            uid: self.uid,
-        };
-        let message = RpcMessage::new("LoginConfirmed", response);
-        self.con_actor.do_send(message);
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
@@ -67,6 +61,7 @@ impl actix::Handler<RequestHuman> for ProcedureActor {
             orig_request: msg,
             addr: ctx.address(),
         });
+        Ok(())
     }
 }
 

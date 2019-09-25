@@ -8,3 +8,11 @@ pub struct JrpcMessage {
     pub id: Option<usize>,
     pub params: serde_json::Value,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct JrpcResponse {
+    pub jsonrpc: String,
+    pub id: usize,
+    #[serde(default)]
+    pub result: serde_json::Value,
+}

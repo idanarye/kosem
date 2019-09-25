@@ -1,6 +1,7 @@
-use actix::Actor as _;
+use actix::prelude::*;
 use serde::Deserialize;
 
+use kosem_webapi::KosemResult;
 use kosem_webapi::handshake_messages::*;
 use kosem_webapi::pairing_messages::*;
 
@@ -22,7 +23,11 @@ impl ActorRoleState {
         ActorRoleState::NotYetIdentifiedActor(actor)
     }
 
-    pub fn send_request_from_connection<'de>(&self, method: &str, params: impl serde::Deserializer<'de>) {
+    pub fn send_request_from_connection<'de>(
+        &self,
+        method: &str,
+        params: impl serde::Deserializer<'de>,
+    ) -> ResponseFuture<KosemResult<serde_value::Value>, MailboxError> {
         macro_rules! route {
             ($( $msg:ident => $($roles:ident),*; )*) => {
                 match method {
@@ -32,7 +37,17 @@ impl ActorRoleState {
                             match self {
                                 $(
                                     ActorRoleState::$roles(actor) => {
-                                        actor.do_send(params);
+                                        // ctx.spawn(
+                                            // Box::<dyn Future<Item = serde_value::Value, Error = KosemError>>::new(
+                                            // ResponseFuture::<serde_value::Value, KosemError>::new(
+                                        Box::new(
+                                                actor.send(params)
+                                                .map(|res| {
+                                                    res.map(|val| {
+                                                        serde_value::to_value(val).unwrap()
+                                                    })
+                                                }))
+                                        // )
                                     },
                                 )*
                                 _ => panic!()
