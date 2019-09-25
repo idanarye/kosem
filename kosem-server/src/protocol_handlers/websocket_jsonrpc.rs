@@ -1,3 +1,4 @@
+use serde::Deserialize;
 use actix::prelude::*;
 use actix_web_actors::ws;
 
@@ -51,7 +52,7 @@ impl actix::Handler<RpcMessage> for WsJrpc {
             jsonrpc: "2.0".into(),
             method: msg.method,
             id: None,
-            params: msg.params.into(),
+            params: Deserialize::deserialize(msg.params).unwrap(),
         };
         ctx.text(serde_json::to_string(&response).unwrap());
     }

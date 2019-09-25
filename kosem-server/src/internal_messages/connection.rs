@@ -10,7 +10,7 @@ impl Message for ConnectionClosed {
 
 pub struct RpcMessage {
     pub method: String,
-    pub params: serde_json::Value,
+    pub params: serde_value::Value,
 }
 
 impl Message for RpcMessage {
@@ -21,7 +21,7 @@ impl RpcMessage {
     pub fn new(method: impl Into<String>, params: impl serde::Serialize) -> Self {
         RpcMessage {
             method: method.into(),
-            params: serde_json::to_value(params).unwrap(),
+            params: serde_value::to_value(params).unwrap(),
         }
     }
 }
