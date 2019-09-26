@@ -16,6 +16,19 @@ pub enum ActorRoleState {
     HumanActor(actix::Addr<HumanActor>),
 }
 
+pub enum RoutingError<E: serde::de::Error> {
+    MethodNotFound(String),
+    MethodNotAllowedForRole {
+        method: String,
+        current_role: &'static str,
+        allowed_roles: Vec<&'static str>,
+    },
+    DeserializationError {
+        method: Option<String>,
+        error: E,
+    }
+}
+
 impl ActorRoleState {
     pub fn start_not_yet_identified_actor(con_actor: actix::Addr<WsJrpc>) -> Self {
         let actor = NotYetIdentifiedActor::new(con_actor);
@@ -23,38 +36,66 @@ impl ActorRoleState {
         ActorRoleState::NotYetIdentifiedActor(actor)
     }
 
-    pub fn send_request_from_connection<'de>(
+    fn role_name(&self) -> &'static str {
+        match self {
+            Self::Init => "init",
+            Self::NotYetIdentifiedActor(_) => "not-logged-in",
+            Self::ProcedureActor(_) => "procedure",
+            Self::HumanActor(_) => "human",
+        }
+    }
+
+    fn variant_text_to_role_name(variant_name: &str) -> &'static str {
+        match variant_name {
+            "Init" => "init",
+            "NotYetIdentifiedActor" => "not-logged-in",
+            "ProcedureActor" => "procedure",
+            "HumanActor" => "human",
+            _ => panic!("BAD"),
+        }
+    }
+
+    pub fn send_request_from_connection<'de, Deser: serde::Deserializer<'de>>(
         &self,
         method: &str,
-        params: impl serde::Deserializer<'de>,
-    ) -> ResponseFuture<KosemResult<serde_value::Value>, MailboxError> {
+        params: Deser,
+        _error_classifier: impl FnOnce(&str, Deser::Error),
+    ) -> Result<ResponseFuture<KosemResult<serde_value::Value>, MailboxError>, RoutingError<Deser::Error>> {
         macro_rules! route {
-            ($( $msg:ident => $($roles:ident),*; )*) => {
+            ($( $method:ident => $($role:ident),*; )*) => {
                 match method {
                     $(
-                        stringify!($msg) => {
-                            let params = $msg::deserialize(params).unwrap();
+                        stringify!($method) => {
+                            let params = $method::deserialize(params).map_err(|error| {
+                                RoutingError::DeserializationError {
+                                    method: Some(method.to_owned()),
+                                    error
+                                }
+                            })?;
                             match self {
                                 $(
-                                    ActorRoleState::$roles(actor) => {
-                                        // ctx.spawn(
-                                            // Box::<dyn Future<Item = serde_value::Value, Error = KosemError>>::new(
-                                            // ResponseFuture::<serde_value::Value, KosemError>::new(
-                                        Box::new(
-                                                actor.send(params)
+                                    ActorRoleState::$role(actor) => {
+                                        Ok(Box::new(actor.send(params)
                                                 .map(|res| {
                                                     res.map(|val| {
                                                         serde_value::to_value(val).unwrap()
                                                     })
-                                                }))
-                                        // )
-                                    },
-                                )*
-                                _ => panic!()
+                                                })))
+                                    }
+                                ),*,
+                                _ => Err(RoutingError::MethodNotAllowedForRole {
+                                    method: method.to_owned(),
+                                    current_role: self.role_name(),
+                                    allowed_roles: vec![
+                                        $(Self::variant_text_to_role_name(stringify!($role))),*
+                                    ],
+                                })
                             }
                         },
                     )*
-                    _ => panic!(),
+                    _ => {
+                        Err(RoutingError::MethodNotFound(method.to_owned()))
+                    }
                 }
             }
         }

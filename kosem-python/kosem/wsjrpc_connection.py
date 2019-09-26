@@ -47,8 +47,12 @@ class KosemWsJrpcConnection(object):
         stream = self.stream_messages(also_responses=True)
         self.__con.send(json.dumps(msg))
         for msg in stream:
-            if 'method' not in msg and msg['id'] == message_id:
-                return msg['result']
+            if 'method' not in msg:
+                if msg['id'] == message_id:
+                    try:
+                        return msg['result']
+                    except KeyError:
+                        raise KosemWsJrpcError(**msg['error'])
 
     def stream_messages(self, also_responses=False):
         receiver = self.__queue.receiver()
@@ -74,3 +78,14 @@ class KosemWsJrpcConnection(object):
                 print(also_responses, msg)
                 if also_responses or 'method' in msg:
                     yield msg
+
+
+class KosemWsJrpcError(Exception):
+    def __init__(self, code, message, data=None):
+        if data:
+            super().__init__('[%s]%s: %s' % (code, message, data))
+        else:
+            super().__init__('[%s]%s' % (code, message))
+        self.code = code
+        self.message = message
+        self.data = data

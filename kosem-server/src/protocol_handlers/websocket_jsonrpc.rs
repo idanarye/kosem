@@ -2,7 +2,7 @@ use serde::Deserialize;
 use actix::prelude::*;
 use actix_web_actors::ws;
 
-use kosem_webapi::protocols::{JrpcMessage, JrpcResponse};
+use kosem_webapi::protocols::{JrpcMessage, JrpcResponse, JrpcError};
 
 use crate::role_actors;
 use crate::internal_messages::connection::{RpcMessage, SetRole};
@@ -19,31 +19,109 @@ impl actix::Actor for WsJrpc {
     }
 }
 
+fn format_deserialization_error(method: Option<String>, error: serde_json::Error) -> JrpcError  {
+    use serde_json::error::Category;
+    match error.classify() {
+         Category::Data => if let Some(method) = method {
+             JrpcError {
+                 code: -32602,
+                 message: "Invalid params".to_owned(),
+                 data: Some(serde_json::json!({
+                     "method_name": method,
+                     "error": error.to_string(),
+                     "line": error.line(),
+                     "column": error.column(),
+                 })),
+             }
+         } else {
+             JrpcError {
+                 code: -32600,
+                 message: "Invalid Request".to_owned(),
+                 data: Some(serde_json::json!({
+                     "error": error.to_string(),
+                     "line": error.line(),
+                     "column": error.column(),
+                 })),
+             }
+         }
+         Category::Syntax | Category::Io | Category::Eof => JrpcError {
+             code: -32700,
+             message: "Parse error".to_owned(),
+             data: Some(serde_json::json!({
+                 "error": error.to_string(),
+                 "line": error.line(),
+                 "column": error.column(),
+             })),
+         }
+    }
+}
+
 impl actix::StreamHandler<ws::Message, ws::ProtocolError> for WsJrpc {
     fn handle(&mut self, msg: ws::Message, ctx: &mut Self::Context) {
         match msg {
             ws::Message::Ping(msg) => ctx.pong(&msg),
             ws::Message::Text(txt) => {
-                let request: JrpcMessage = serde_json::from_str(&txt).unwrap();
+                let request: JrpcMessage = match serde_json::from_str(&txt) {
+                    Ok(request) => request,
+                    Err(error) => {
+                        let response = JrpcResponse {
+                            jsonrpc: "2.0".into(),
+                            id: None,
+                            payload: Err(format_deserialization_error(None, error)),
+                        };
+                        ctx.text(serde_json::to_string(&response).unwrap());
+                        return;
+                    }
+                };
                 log::warn!("got {:?}", request);
                 let request_id = request.id.clone();
-                let future = self.state.send_request_from_connection(&request.method, request.params);
+                let future = self.state.send_request_from_connection(&request.method, request.params, |_method, _error| {
+                });
+                let future = match future {
+                    Ok(future) => future,
+                    Err(error) => {
+                        use crate::role_actors::RoutingError;
+                        let jrpc_error = match error {
+                            RoutingError::MethodNotFound(method) =>  JrpcError {
+                                code: -32601,
+                                message: "Method not found".to_owned(),
+                                data: Some(serde_json::json!({
+                                    "method_name": method,
+                                })),
+                            },
+                            RoutingError::MethodNotAllowedForRole { method, current_role, allowed_roles } => JrpcError {
+                                code: -32601,
+                                message: "Method not allowed for current role".to_owned(),
+                                data: Some(serde_json::json!({
+                                    "method_name": method,
+                                    "current_role": current_role,
+                                    "allowed_roles": allowed_roles,
+                                })),
+                            },
+                            RoutingError::DeserializationError { method, error } => format_deserialization_error(method, error),
+                        };
+                        let response = JrpcResponse {
+                            jsonrpc: "2.0".into(),
+                            id: request_id,
+                            payload: Err(jrpc_error),
+                        };
+                        ctx.text(serde_json::to_string(&response).unwrap());
+                        return;
+                    }
+                };
                 let future = future.map_err(|e| panic!(e));
                 let future = future.into_actor(self).map(move |result, _, ctx| {
-                    let request_id = if let Some(request_id) = request_id {
-                        request_id
-                    } else {
-                        return;
-                    };
                     log::warn!("Le result be {:?}", result);
                     match result {
                         Ok(result) => {
-                            let response = JrpcResponse {
-                                jsonrpc: "2.0".into(),
-                                id: request_id,
-                                result: Deserialize::deserialize(result).unwrap(),
-                            };
-                            ctx.text(serde_json::to_string(&response).unwrap());
+                            if request_id.is_some() {
+                                let response = JrpcResponse {
+                                    jsonrpc: "2.0".into(),
+                                    id: request_id,
+                                    payload: Ok(Deserialize::deserialize(result).unwrap()),
+                                };
+                                ctx.text(serde_json::to_string(&response).unwrap());
+                            }
                         },
                         Err(_err) => {
                             panic!("TODO: implement JSON RPC errors");
