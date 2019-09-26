@@ -51,7 +51,7 @@ impl ActorRoleState {
             "NotYetIdentifiedActor" => "not-logged-in",
             "ProcedureActor" => "procedure",
             "HumanActor" => "human",
-            _ => panic!("BAD"),
+            _ => unreachable!("Unhandled variant"),
         }
     }
 

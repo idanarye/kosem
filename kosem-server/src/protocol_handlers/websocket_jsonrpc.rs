@@ -109,8 +109,26 @@ impl actix::StreamHandler<ws::Message, ws::ProtocolError> for WsJrpc {
                         return;
                     }
                 };
-                let future = future.map_err(|e| panic!(e));
-                let future = future.into_actor(self).map(move |result, _, ctx| {
+                let future = future.into_actor(self);
+                let future = future.map_err({
+                    let request_id = request_id.clone();
+                    move |error, _, ctx| {
+                        let jrpc_error = JrpcError {
+                            code: -32000,
+                            message: "Server error".to_owned(),
+                            data: Some(serde_json::json!({
+                                "error": error.to_string(),
+                            })),
+                        };
+                        let response = JrpcResponse {
+                            jsonrpc: "2.0".into(),
+                            id: request_id,
+                            payload: Err(jrpc_error),
+                        };
+                        ctx.text(serde_json::to_string(&response).unwrap());
+                    }
+                });
+                let future = future.map(move |result, _, ctx| {
                     log::warn!("Le result be {:?}", result);
                     match result {
                         Ok(result) => {
