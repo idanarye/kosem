@@ -48,10 +48,11 @@ impl actix::Handler<LoginAsHuman> for NotYetIdentifiedActor {
 
     fn handle(&mut self, msg: LoginAsHuman, ctx: &mut actix::Context<Self>) -> Self::Result {
         log::info!("LoginAsHuman: {:?}", msg);
-        let actor = HumanActor::new(self.con_actor.clone(), msg.name);
+        let human_uid = Uuid::new_v4();
+        let actor = HumanActor::builder().uid(human_uid).con_actor(self.con_actor.clone()).name(msg.name).build();
         let actor = actor.start();
         self.con_actor.do_send(SetRole::Human(actor));
         ctx.stop();
-        Ok(())
+        Ok(human_uid)
     }
 }

@@ -1,6 +1,6 @@
 use actix::{Message, Addr};
 
-use kosem_webapi::Uuid;
+use kosem_webapi::{Uuid, KosemResult};
 use kosem_webapi::pairing_messages::RequestHuman;
 
 use crate::role_actors::{ProcedureActor, HumanActor};
@@ -49,7 +49,7 @@ pub struct HumanJoiningProcedure {
 }
 
 impl Message for HumanJoiningProcedure {
-    type Result = ();
+    type Result = KosemResult<()>;
 }
 
 #[derive(Clone)]

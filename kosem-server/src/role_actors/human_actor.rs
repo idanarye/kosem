@@ -16,17 +16,11 @@ use crate::internal_messages::pairing::{
     PairingPerformed,
 };
 
+#[derive(typed_builder::TypedBuilder)]
 pub struct HumanActor {
     con_actor: actix::Addr<WsJrpc>,
     uid: Uuid,
     name: String,
-}
-
-impl HumanActor {
-    pub fn new(con_actor: actix::Addr<WsJrpc>, name: String) -> Self {
-        let uid = Uuid::new_v4();
-        Self { con_actor: con_actor, name, uid }
-    }
 }
 
 impl actix::Actor for HumanActor {
@@ -84,16 +78,26 @@ impl actix::Handler<RemoveRequestForHuman> for HumanActor {
     }
 }
 
+use kosem_webapi::{KosemResult, KosemError};
 impl actix::Handler<JoinProcedure> for HumanActor {
-    type Result = <JoinProcedure as actix::Message>::Result;
+    // type Result = ResponseActFuture<Self, <JoinProcedure as actix::Message>::Result, MailboxError>;
+    type Result = ResponseActFuture<Self, (), KosemError>;
 
     fn handle(&mut self, msg: JoinProcedure, _ctx: &mut actix::Context<Self>) -> Self::Result {
         log::info!("Human {} joined procedure {}", self.name, msg.uid);
-        PairingActor::from_registry().do_send(HumanJoiningProcedure {
-            human_uid: self.uid,
-            request_uid: msg.uid,
-        });
-        Ok(())
+        Box::new(
+            PairingActor::from_registry().send(HumanJoiningProcedure {
+                human_uid: self.uid,
+                request_uid: msg.uid,
+            })
+            .into_actor(self)
+            .map_err(|e, _, _| {
+                panic!(e);
+            })
+            .map(|result, _actor, _ctx| {
+                log::warn!("Join result is {:?}", result);
+            })
+        )
     }
 }
 

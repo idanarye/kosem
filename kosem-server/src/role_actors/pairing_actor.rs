@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use kosem_webapi::Uuid;
+use kosem_webapi::{Uuid, KosemError};
 
 use crate::internal_messages::pairing::*;
 
@@ -65,7 +65,7 @@ impl actix::Handler<RemoveAvailableHuman> for PairingActor {
 }
 
 impl actix::Handler<HumanJoiningProcedure> for PairingActor {
-    type Result = ();
+    type Result = <HumanJoiningProcedure as actix::Message>::Result;
 
     fn handle(&mut self, msg: HumanJoiningProcedure, _ctx: &mut Self::Context) -> Self::Result {
         let human_entry = self.available_humans.entry(msg.human_uid);
@@ -75,9 +75,11 @@ impl actix::Handler<HumanJoiningProcedure> for PairingActor {
             (Entry::Occupied(human_entry), Entry::Occupied(request_entry)) => {
                 (human_entry, request_entry)
             },
-            (_, _) => {
-                // TODO: deal with situations when human or request is missing
-                panic!("Missing entries");
+            (Entry::Vacant(_), _) => {
+                return Err(KosemError::new("Human is not available for handling procedures"));
+            },
+            (_, Entry::Vacant(_)) => {
+                return Err(KosemError::new("Request does not exist in pending requests"));
             },
         };
 
@@ -101,5 +103,6 @@ impl actix::Handler<HumanJoiningProcedure> for PairingActor {
                 uid: request.uid,
             });
         }
+        Ok(())
     }
 }

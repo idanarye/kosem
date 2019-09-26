@@ -129,7 +129,6 @@ impl actix::StreamHandler<ws::Message, ws::ProtocolError> for WsJrpc {
                     }
                 });
                 let future = future.map(move |result, _, ctx| {
-                    log::warn!("Le result be {:?}", result);
                     match result {
                         Ok(result) => {
                             if request_id.is_some() {

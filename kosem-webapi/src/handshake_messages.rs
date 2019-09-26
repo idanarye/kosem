@@ -19,7 +19,7 @@ pub struct LoginAsHuman {
 }
 
 impl Message for LoginAsHuman {
-    type Result = KosemResult<()>;
+    type Result = KosemResult<Uuid>;
 }
 
 #[derive(Debug, Serialize, Deserialize)]
