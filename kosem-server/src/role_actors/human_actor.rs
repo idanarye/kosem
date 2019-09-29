@@ -1,6 +1,6 @@
 use actix::prelude::*;
 
-use kosem_webapi::Uuid;
+use kosem_webapi::{Uuid, KosemError};
 use kosem_webapi::pairing_messages::*;
 
 use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
@@ -78,9 +78,7 @@ impl actix::Handler<RemoveRequestForHuman> for HumanActor {
     }
 }
 
-use kosem_webapi::{KosemResult, KosemError};
 impl actix::Handler<JoinProcedure> for HumanActor {
-    // type Result = ResponseActFuture<Self, <JoinProcedure as actix::Message>::Result, MailboxError>;
     type Result = ResponseActFuture<Self, (), KosemError>;
 
     fn handle(&mut self, msg: JoinProcedure, _ctx: &mut actix::Context<Self>) -> Self::Result {
@@ -94,8 +92,9 @@ impl actix::Handler<JoinProcedure> for HumanActor {
             .map_err(|e, _, _| {
                 panic!(e);
             })
-            .map(|result, _actor, _ctx| {
+            .and_then(|result, _actor, _ctx| {
                 log::warn!("Join result is {:?}", result);
+                fut::result(result)
             })
         )
     }

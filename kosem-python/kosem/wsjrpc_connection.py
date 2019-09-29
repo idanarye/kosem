@@ -83,9 +83,14 @@ class KosemWsJrpcConnection(object):
 class KosemWsJrpcError(Exception):
     def __init__(self, code, message, data=None):
         if data:
-            super().__init__('[%s]%s: %s' % (code, message, data))
+            if isinstance(data, dict):
+                super().__init__('%s (%s)' % (
+                    message,
+                    ', '.join('%s=%r' % (k, v) for (k, v) in data.items())))
+            else:
+                super().__init__('%s: %s' % (message, data))
         else:
-            super().__init__('[%s]%s' % (code, message))
+            super().__init__(message)
         self.code = code
         self.message = message
         self.data = data

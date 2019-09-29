@@ -140,8 +140,17 @@ impl actix::StreamHandler<ws::Message, ws::ProtocolError> for WsJrpc {
                                 ctx.text(serde_json::to_string(&response).unwrap());
                             }
                         },
-                        Err(_err) => {
-                            panic!("TODO: implement JSON RPC errors");
+                        Err(error) => {
+                            let response = JrpcResponse {
+                                jsonrpc: "2.0".into(),
+                                id: request_id,
+                                payload: Err(JrpcError {
+                                    code: 1,
+                                    message: error.message,
+                                    data: Some(serde_json::value::to_value(error.data_fields).unwrap()),
+                                }),
+                            };
+                            ctx.text(serde_json::to_string(&response).unwrap());
                         }
                     }
                 });

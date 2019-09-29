@@ -79,7 +79,10 @@ impl actix::Handler<HumanJoiningProcedure> for PairingActor {
                 return Err(KosemError::new("Human is not available for handling procedures"));
             },
             (_, Entry::Vacant(_)) => {
-                return Err(KosemError::new("Request does not exist in pending requests"));
+                return Err(
+                    KosemError::new("Request does not exist in pending requests")
+                    .with("request_uid", msg.request_uid)
+                );
             },
         };
 
