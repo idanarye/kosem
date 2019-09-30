@@ -14,7 +14,7 @@ impl RpcMessage {
         RpcMessage {
             idx: None,
             method: method.into(),
-            params: serde_json::to_value(params).unwrap(),
+            params: serde_json::to_value(params).expect("Generated RpcMessage must be serializable"),
         }
     }
 }

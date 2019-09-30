@@ -22,7 +22,8 @@ impl KosemError {
     }
 
     pub fn with(mut self, key: impl Into<String>, value: impl Serialize) -> Self {
-        self.data_fields.insert(key.into(), serde_value::to_value(value).unwrap());
+        let value = serde_value::to_value(value).expect("Error values must be serializable");
+        self.data_fields.insert(key.into(), value);
         self
     }
 }

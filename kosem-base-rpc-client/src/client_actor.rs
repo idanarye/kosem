@@ -27,17 +27,6 @@ macro_rules! wrap_addr_as_routing {
     }
 }
 
-// impl ClientRouting {
-    // pub fn routing_to<A>(addr: Addr<A>) -> Self
-        // where A: Actor,
-              // A: Handler<ConnectClientActor>
-    // {
-        // ClientRouting {
-            // connect_client_actor: addr.recipient(),
-        // }
-    // }
-// }
-
 pub struct ClientActor {
     idx: usize,
     server_config: ServerConfig,
@@ -82,7 +71,7 @@ impl Actor for ClientActor {
             idx: self.idx,
             server_config: self.server_config.clone(),
             client_actor: ctx.address(),
-        }).unwrap();
+        }).expect("routing should be present when the GUI is created");
     }
 }
 
@@ -127,6 +116,7 @@ impl Handler<RpcMessage> for ClientActor {
             id: None,
             params: msg.params.into(),
         };
-        (self.write_fn)(ws::Message::Text(serde_json::to_string(&response).unwrap())).unwrap();
+        let response_text = serde_json::to_string(&response).expect("Response must be serializable");
+        (self.write_fn)(ws::Message::Text(response_text)).unwrap();
     }
 }
