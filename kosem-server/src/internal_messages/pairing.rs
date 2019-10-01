@@ -3,12 +3,12 @@ use actix::{Message, Addr};
 use kosem_webapi::{Uuid, KosemResult};
 use kosem_webapi::pairing_messages::RequestHuman;
 
-use crate::role_actors::{ProcedureActor, HumanActor};
+use crate::role_actors::{ProcedureActor, JoinerActor, HumanActor};
 
 pub struct HumanAvailable {
     pub uid: Uuid,
     pub name: String,
-    pub addr: Addr<HumanActor>,
+    pub addr: Addr<JoinerActor>,
 }
 
 impl Message for HumanAvailable {
@@ -50,6 +50,14 @@ pub struct HumanJoiningProcedure {
 
 impl Message for HumanJoiningProcedure {
     type Result = KosemResult<()>;
+}
+
+pub struct CreateNewHumanActor {
+    pub procedure_addr: Addr<ProcedureActor>,
+}
+
+impl Message for CreateNewHumanActor {
+    type Result = Addr<HumanActor>;
 }
 
 #[derive(Clone)]

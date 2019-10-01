@@ -1,13 +1,16 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use actix::prelude::*;
 
 use kosem_webapi::Uuid;
 use kosem_webapi::pairing_messages::*;
+use kosem_webapi::phase_control_messages::*;
+
+use crate::common_types::Phase;
 
 use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
 
-use crate::role_actors::PairingActor;
+use crate::role_actors::{PairingActor, HumanActor};
 use crate::internal_messages::connection::{RpcMessage, ConnectionClosed};
 use crate::internal_messages::pairing::{
     RemoveRequestForHuman,
@@ -22,6 +25,12 @@ pub struct ProcedureActor {
     name: String,
     #[builder(default)]
     pending_requests_for_humans: HashSet<Uuid>,
+    #[builder(default)]
+    humans: HashMap<Uuid, Addr<HumanActor>>,
+    #[builder(default)]
+    phase_uids: Vec<Uuid>,
+    #[builder(default)]
+    phases: HashMap<Uuid, Phase>,
 }
 
 impl actix::Actor for ProcedureActor {
@@ -77,9 +86,25 @@ impl actix::Handler<PairingPerformed> for ProcedureActor {
             log::info!("Procedure {} still needs {} more humans...", self.name, self.pending_requests_for_humans.len());
         }
 
+        self.humans.insert(msg.human_uid, msg.human_addr);
+
         self.con_actor.do_send(RpcMessage::new("JoinConfirmation", kosem_webapi::pairing_messages::JoinConfirmation {
             human_uid: msg.human_uid,
             request_uid: msg.request_uid,
         }));
+    }
+}
+
+impl actix::Handler<PushPhase> for ProcedureActor {
+    type Result = <PushPhase as actix::Message>::Result;
+
+    fn handle(&mut self, msg: PushPhase, _ctx: &mut actix::Context<Self>) -> Self::Result {
+        let phase_uid = Uuid::new_v4();
+        log::info!("Phase pushed: {:?}. Generated UID {}", msg, phase_uid);
+        let phase = Phase {
+        };
+        self.phase_uids.push(phase_uid);
+        self.phases.insert(phase_uid, phase);
+        Ok(phase_uid)
     }
 }

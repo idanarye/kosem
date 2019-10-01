@@ -4,6 +4,7 @@ pub mod protocols;
 
 pub mod handshake_messages;
 pub mod pairing_messages;
+pub mod phase_control_messages;
 
 use serde::{Deserialize, Serialize};
 

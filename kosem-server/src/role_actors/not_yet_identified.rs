@@ -4,7 +4,7 @@ use kosem_webapi::Uuid;
 use kosem_webapi::handshake_messages::*;
 
 use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
-use crate::role_actors::{ProcedureActor, HumanActor};
+use crate::role_actors::{ProcedureActor, JoinerActor};
 use crate::internal_messages::connection::{SetRole, ConnectionClosed};
 
 pub struct NotYetIdentifiedActor {
@@ -49,9 +49,9 @@ impl actix::Handler<LoginAsHuman> for NotYetIdentifiedActor {
     fn handle(&mut self, msg: LoginAsHuman, ctx: &mut actix::Context<Self>) -> Self::Result {
         log::info!("LoginAsHuman: {:?}", msg);
         let human_uid = Uuid::new_v4();
-        let actor = HumanActor::builder().uid(human_uid).con_actor(self.con_actor.clone()).name(msg.name).build();
+        let actor = JoinerActor::builder().uid(human_uid).con_actor(self.con_actor.clone()).name(msg.name).build();
         let actor = actor.start();
-        self.con_actor.do_send(SetRole::Human(actor));
+        self.con_actor.do_send(SetRole::Joiner(actor));
         ctx.stop();
         Ok(human_uid)
     }

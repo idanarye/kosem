@@ -194,6 +194,9 @@ impl actix::Handler<SetRole> for WsJrpc {
             SetRole::Procedure(addr) => {
                 self.state = role_actors::ActorRoleState::ProcedureActor(addr);
             }
+            SetRole::Joiner(addr) => {
+                self.state = role_actors::ActorRoleState::JoinerActor(addr);
+            }
             SetRole::Human(addr) => {
                 self.state = role_actors::ActorRoleState::HumanActor(addr);
             }

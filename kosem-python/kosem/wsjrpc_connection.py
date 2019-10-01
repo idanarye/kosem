@@ -75,7 +75,6 @@ class KosemWsJrpcConnection(object):
                     self.__queue.enqueue(msg)
                     self.__messages_received += 1
             else:
-                print(also_responses, msg)
                 if also_responses or 'method' in msg:
                     yield msg
 

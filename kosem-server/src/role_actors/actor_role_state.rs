@@ -4,15 +4,22 @@ use serde::Deserialize;
 use kosem_webapi::KosemResult;
 use kosem_webapi::handshake_messages::*;
 use kosem_webapi::pairing_messages::*;
+use kosem_webapi::phase_control_messages::*;
 
 use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
 
-use crate::role_actors::{NotYetIdentifiedActor, ProcedureActor, HumanActor};
+use crate::role_actors::{
+    NotYetIdentifiedActor,
+    ProcedureActor,
+    JoinerActor,
+    HumanActor,
+};
 
 pub enum ActorRoleState {
     Init,
     NotYetIdentifiedActor(actix::Addr<NotYetIdentifiedActor>),
     ProcedureActor(actix::Addr<ProcedureActor>),
+    JoinerActor(actix::Addr<JoinerActor>),
     HumanActor(actix::Addr<HumanActor>),
 }
 
@@ -41,6 +48,7 @@ impl ActorRoleState {
             Self::Init => "init",
             Self::NotYetIdentifiedActor(_) => "not-logged-in",
             Self::ProcedureActor(_) => "procedure",
+            Self::JoinerActor(_) => "joiner",
             Self::HumanActor(_) => "human",
         }
     }
@@ -50,6 +58,7 @@ impl ActorRoleState {
             "Init" => "init",
             "NotYetIdentifiedActor" => "not-logged-in",
             "ProcedureActor" => "procedure",
+            "JoinerActor" => "joiner",
             "HumanActor" => "human",
             _ => unreachable!("Unhandled variant"),
         }
@@ -103,7 +112,8 @@ impl ActorRoleState {
             LoginAsProcedure => NotYetIdentifiedActor;
             LoginAsHuman => NotYetIdentifiedActor;
             RequestHuman => ProcedureActor;
-            JoinProcedure => HumanActor;
+            JoinProcedure => JoinerActor;
+            PushPhase => ProcedureActor;
         }
     }
 
@@ -114,6 +124,7 @@ impl ActorRoleState {
             ActorRoleState::Init => {},
             ActorRoleState::NotYetIdentifiedActor(addr) => addr.do_send(msg),
             ActorRoleState::ProcedureActor(addr) => addr.do_send(msg),
+            ActorRoleState::JoinerActor(addr) => addr.do_send(msg),
             ActorRoleState::HumanActor(addr) => addr.do_send(msg),
         }
     }

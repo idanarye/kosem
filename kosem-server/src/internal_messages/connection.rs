@@ -1,6 +1,6 @@
 use actix::Message;
 
-use crate::role_actors::{ProcedureActor, HumanActor};
+use crate::role_actors::{ProcedureActor, JoinerActor, HumanActor};
 
 pub struct ConnectionClosed;
 
@@ -28,6 +28,7 @@ impl RpcMessage {
 
 pub enum SetRole {
     Procedure(actix::Addr<ProcedureActor>),
+    Joiner(actix::Addr<JoinerActor>),
     Human(actix::Addr<HumanActor>),
 }
 
