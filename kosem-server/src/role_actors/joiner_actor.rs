@@ -119,12 +119,16 @@ impl actix::Handler<PairingPerformed> for JoinerActor {
     type Result = <PairingPerformed as actix::Message>::Result;
 
     fn handle(&mut self, msg: PairingPerformed, ctx: &mut actix::Context<Self>) -> Self::Result {
-        log::info!("Paired human {} to request {}", msg.human_uid, msg.request_uid);
-        self.con_actor.do_send(SetRole::Human(msg.human_addr));
-        self.con_actor.do_send(RpcMessage::new("JoinConfirmation", kosem_webapi::pairing_messages::JoinConfirmation {
-            human_uid: msg.human_uid,
-            request_uid: msg.request_uid,
-        }));
-        ctx.stop();
+        ctx.spawn(
+            msg.human_addr.clone().send(msg)
+            .into_actor(self)
+            .map_err(|e, _, _| {
+                panic!(e);
+            })
+            .map(|_, _, ctx| {
+                // NOTE: We only stop this after we *finished* informing the new HumanActor.
+                ctx.stop();
+            })
+        );
     }
 }

@@ -4,7 +4,8 @@ use kosem_webapi::Uuid;
 
 use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
 
-use crate::internal_messages::connection::ConnectionClosed;
+use crate::internal_messages::connection::{RpcMessage, ConnectionClosed, SetRole};
+use crate::internal_messages::pairing::PairingPerformed;
 
 use crate::role_actors::ProcedureActor;
 
@@ -33,5 +34,18 @@ impl actix::Handler<ConnectionClosed> for HumanActor {
 
     fn handle(&mut self, _msg: ConnectionClosed, ctx: &mut actix::Context<Self>) -> Self::Result {
         ctx.stop();
+    }
+}
+
+impl actix::Handler<PairingPerformed> for HumanActor {
+    type Result = <PairingPerformed as actix::Message>::Result;
+
+    fn handle(&mut self, msg: PairingPerformed, ctx: &mut actix::Context<Self>) -> Self::Result {
+        log::info!("Paired human {} to request {}", msg.human_uid, msg.request_uid);
+        self.con_actor.do_send(SetRole::Human(ctx.address()));
+        self.con_actor.do_send(RpcMessage::new("JoinConfirmation", kosem_webapi::pairing_messages::JoinConfirmation {
+            human_uid: self.uid,
+            request_uid: msg.request_uid,
+        }));
     }
 }
