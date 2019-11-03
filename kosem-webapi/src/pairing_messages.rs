@@ -10,7 +10,7 @@ pub struct RequestHuman {
 }
 
 impl Message for RequestHuman {
-    type Result = KosemResult<()>;
+    type Result = KosemResult<Uuid>;
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -43,10 +43,21 @@ impl Message for JoinProcedure {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct JoinConfirmation {
-    pub human_uid: Uuid,
     pub request_uid: Uuid,
+    pub human_uid: Uuid,
 }
 
 impl Message for JoinConfirmation {
+    type Result = KosemResult<()>;
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct HumanJoined {
+    pub request_uid: Uuid,
+    pub human_uid: Uuid,
+    pub human_name: String,
+}
+
+impl Message for HumanJoined {
     type Result = KosemResult<()>;
 }

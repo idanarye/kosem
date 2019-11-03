@@ -6,7 +6,7 @@ use kosem_webapi::pairing_messages::*;
 use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
 use crate::role_actors::{PairingActor, HumanActor};
 
-use crate::internal_messages::connection::{RpcMessage, ConnectionClosed, SetRole};
+use crate::internal_messages::connection::{RpcMessage, ConnectionClosed};
 use crate::internal_messages::pairing::{
     HumanAvailable,
     ProcedureRequestingHuman,

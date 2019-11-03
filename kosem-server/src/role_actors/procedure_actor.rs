@@ -17,6 +17,7 @@ use crate::internal_messages::pairing::{
     ProcedureRequestingHuman,
     PairingPerformed,
 };
+use crate::internal_messages::info_sharing;
 
 #[derive(typed_builder::TypedBuilder)]
 pub struct ProcedureActor {
@@ -70,14 +71,14 @@ impl actix::Handler<RequestHuman> for ProcedureActor {
             orig_request: msg,
             addr: ctx.address(),
         });
-        Ok(())
+        Ok(uid)
     }
 }
 
 impl actix::Handler<PairingPerformed> for ProcedureActor {
     type Result = <PairingPerformed as actix::Message>::Result;
 
-    fn handle(&mut self, msg: PairingPerformed, _ctx: &mut actix::Context<Self>) -> Self::Result {
+    fn handle(&mut self, msg: PairingPerformed, ctx: &mut actix::Context<Self>) -> Self::Result {
         log::info!("Paired request {} to human {}", msg.request_uid, msg.human_uid);
         self.pending_requests_for_humans.remove(&msg.request_uid);
         if self.pending_requests_for_humans.is_empty() {
@@ -86,12 +87,22 @@ impl actix::Handler<PairingPerformed> for ProcedureActor {
             log::info!("Procedure {} still needs {} more humans...", self.name, self.pending_requests_for_humans.len());
         }
 
-        self.humans.insert(msg.human_uid, msg.human_addr);
+        self.humans.insert(msg.human_uid, msg.human_addr.clone());
 
-        self.con_actor.do_send(RpcMessage::new("JoinConfirmation", kosem_webapi::pairing_messages::JoinConfirmation {
-            human_uid: msg.human_uid,
-            request_uid: msg.request_uid,
-        }));
+        let PairingPerformed { human_uid, request_uid, .. } = msg;
+
+        ctx.spawn(
+            msg.human_addr.send(info_sharing::GetInfo::<info_sharing::HumanDetails>::default())
+            .into_actor(self)
+            .map_err(|e, _, _| panic!(e))
+            .map(move |msg, this, _ctx| {
+                this.con_actor.do_send(RpcMessage::new("HumanJoined", kosem_webapi::pairing_messages::HumanJoined {
+                    human_uid,
+                    request_uid,
+                    human_name: msg.name,
+                }));
+            })
+        );
     }
 }
 

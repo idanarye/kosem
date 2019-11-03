@@ -6,6 +6,7 @@ use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
 
 use crate::internal_messages::connection::{RpcMessage, ConnectionClosed, SetRole};
 use crate::internal_messages::pairing::PairingPerformed;
+use crate::internal_messages::info_sharing;
 
 use crate::role_actors::ProcedureActor;
 
@@ -47,5 +48,15 @@ impl actix::Handler<PairingPerformed> for HumanActor {
             human_uid: self.uid,
             request_uid: msg.request_uid,
         }));
+    }
+}
+
+impl actix::Handler<info_sharing::GetInfo<info_sharing::HumanDetails>> for HumanActor {
+    type Result = <info_sharing::GetInfo<info_sharing::HumanDetails> as actix::Message>::Result;
+
+    fn handle(&mut self, _msg: info_sharing::GetInfo<info_sharing::HumanDetails>, _ctx: &mut actix::Context<Self>) -> Self::Result {
+        info_sharing::HumanDetails {
+            name: self.name.clone(),
+        }
     }
 }
