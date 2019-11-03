@@ -4,22 +4,16 @@ use uuid::Uuid;
 
 use crate::KosemResult;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Message)]
+#[rtype(result="KosemResult<Uuid>")]
 pub struct LoginAsProcedure {
     pub name: String,
 }
 
-impl Message for LoginAsProcedure {
-    type Result = KosemResult<Uuid>;
-}
-
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Message)]
+#[rtype(result="KosemResult<Uuid>")]
 pub struct LoginAsHuman {
     pub name: String,
-}
-
-impl Message for LoginAsHuman {
-    type Result = KosemResult<Uuid>;
 }
 
 #[derive(Debug, Serialize, Deserialize)]

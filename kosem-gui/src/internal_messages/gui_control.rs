@@ -13,23 +13,15 @@ impl<T> Message for MessageFromServer<T> {
     type Result = ();
 }
 
-#[derive(Debug)]
+#[derive(Debug, Message)]
 pub enum MessageToGui {
     AvailableProcedure(MessageFromServer<pairing_messages::AvailableProcedure>),
     UnavailableProcedure(MessageFromServer<pairing_messages::UnavailableProcedure>),
     JoinConfirmation(MessageFromServer<pairing_messages::JoinConfirmation>),
 }
 
-impl Message for MessageToGui {
-    type Result = ();
-}
-
-#[derive(Debug)]
+#[derive(Debug, Message)]
 pub struct UserSelectedProcedure {
     pub server_idx: usize,
     pub procedure_uid: Uuid,
-}
-
-impl Message for UserSelectedProcedure {
-    type Result = ();
 }

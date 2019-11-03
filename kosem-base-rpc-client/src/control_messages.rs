@@ -3,6 +3,7 @@ use actix::prelude::*;
 use crate::ClientActor;
 use crate::config::ServerConfig;
 
+#[derive(Message)]
 pub struct RpcMessage {
     pub idx: Option<usize>,
     pub method: String,
@@ -19,16 +20,9 @@ impl RpcMessage {
     }
 }
 
-impl Message for RpcMessage {
-    type Result = ();
-}
-
+#[derive(Message)]
 pub struct ConnectClientActor {
     pub idx: usize,
     pub server_config: ServerConfig,
     pub client_actor: Addr<ClientActor>,
-}
-
-impl Message for ConnectClientActor {
-    type Result = ();
 }

@@ -1,4 +1,4 @@
-use actix::Message;
+use actix::{Message, MessageResponse};
 
 pub struct GetInfo<T> {
     _phantom: std::marker::PhantomData<T>,
@@ -12,11 +12,11 @@ impl<T> Default for GetInfo<T> {
     }
 }
 
-#[derive(actix_derive::MessageResponse)]
-pub struct HumanDetails {
-    pub name: String,
+impl<T: 'static> Message for GetInfo<T> {
+    type Result = T;
 }
 
-impl Message for GetInfo<HumanDetails> {
-    type Result = HumanDetails;
+#[derive(MessageResponse)]
+pub struct HumanDetails {
+    pub name: String,
 }

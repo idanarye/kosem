@@ -4,60 +4,42 @@ use uuid::Uuid;
 
 use crate::KosemResult;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Message)]
+#[rtype(result="KosemResult<Uuid>")]
 pub struct RequestHuman {
     pub name: String,
 }
 
-impl Message for RequestHuman {
-    type Result = KosemResult<Uuid>;
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Message)]
+#[rtype(result="KosemResult<()>")]
 pub struct AvailableProcedure {
     pub uid: Uuid,
     pub name: String,
 }
 
-impl Message for AvailableProcedure {
-    type Result = KosemResult<()>;
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Message)]
+#[rtype(result="KosemResult<()>")]
 pub struct UnavailableProcedure {
     pub uid: Uuid,
 }
 
-impl Message for UnavailableProcedure {
-    type Result = KosemResult<()>;
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Message)]
+#[rtype(result="KosemResult<()>")]
 pub struct JoinProcedure {
     pub uid: Uuid,
 }
 
-impl Message for JoinProcedure {
-    type Result = KosemResult<()>;
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Message)]
+#[rtype(result="KosemResult<()>")]
 pub struct JoinConfirmation {
     pub request_uid: Uuid,
     pub human_uid: Uuid,
 }
 
-impl Message for JoinConfirmation {
-    type Result = KosemResult<()>;
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Message)]
+#[rtype(result="KosemResult<()>")]
 pub struct HumanJoined {
     pub request_uid: Uuid,
     pub human_uid: Uuid,
     pub human_name: String,
-}
-
-impl Message for HumanJoined {
-    type Result = KosemResult<()>;
 }

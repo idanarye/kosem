@@ -2,19 +2,13 @@ use actix::Message;
 
 use crate::role_actors::{ProcedureActor, JoinerActor, HumanActor};
 
+#[derive(Message)]
 pub struct ConnectionClosed;
 
-impl Message for ConnectionClosed {
-    type Result = ();
-}
-
+#[derive(Message)]
 pub struct RpcMessage {
     pub method: String,
     pub params: serde_value::Value,
-}
-
-impl Message for RpcMessage {
-    type Result = ();
 }
 
 impl RpcMessage {
@@ -26,12 +20,9 @@ impl RpcMessage {
     }
 }
 
+#[derive(Message)]
 pub enum SetRole {
     Procedure(actix::Addr<ProcedureActor>),
     Joiner(actix::Addr<JoinerActor>),
     Human(actix::Addr<HumanActor>),
-}
-
-impl Message for SetRole {
-    type Result = ();
 }
