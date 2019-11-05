@@ -45,7 +45,6 @@ impl actix::Handler<PairingPerformed> for HumanActor {
         log::info!("Paired human {} to request {}", msg.human_uid, msg.request_uid);
         self.con_actor.do_send(SetRole::Human(ctx.address()));
         self.con_actor.do_send(RpcMessage::new("JoinConfirmation", kosem_webapi::pairing_messages::JoinConfirmation {
-            human_uid: self.uid,
             request_uid: msg.request_uid,
         }));
     }

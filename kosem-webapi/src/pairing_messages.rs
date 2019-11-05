@@ -33,7 +33,6 @@ pub struct JoinProcedure {
 #[rtype(result="KosemResult<()>")]
 pub struct JoinConfirmation {
     pub request_uid: Uuid,
-    pub human_uid: Uuid,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Message)]

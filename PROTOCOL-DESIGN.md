@@ -7,7 +7,7 @@
 * Server sends multiple `AvailableProcedure` requests - one for each procedure.
     * Should this be automatically, or should the human send something like `ListAvailableProcedures`?
 * Human sends `JoinProcedure`.
-* If the join is successful - both procedure and human receive `JoinConfirmation`.
+* If the join is successful - human receives `JoinConfirmation` and procedure receives `HumanJoined`.
 * Once a procedure gets its human, all other humans will get `UnavailableProcedure`.
     * If a procedure disconnects all humans receive this.
 
