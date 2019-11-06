@@ -119,8 +119,8 @@ impl actix::Handler<PushPhase> for ProcedureActor {
     fn handle(&mut self, msg: PushPhase, _ctx: &mut actix::Context<Self>) -> Self::Result {
         let phase_uid = Uuid::new_v4();
         log::info!("Phase pushed: {:?}. Generated UID {}", msg, phase_uid);
-        let phase = Phase {
-        };
+        let phase = Phase::new(msg.components);
+        log::info!("Phase looks like this: {:?}", phase);
         self.phase_uids.push(phase_uid);
         self.phases.insert(phase_uid, phase);
         for (human_uid, human) in self.humans.iter() {

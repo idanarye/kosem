@@ -14,6 +14,7 @@ use crate::role_actors::ProcedureActor;
 #[derive(typed_builder::TypedBuilder)]
 pub struct HumanActor {
     con_actor: actix::Addr<WsJrpc>,
+    #[allow(unused)]
     procedure_actor: actix::Addr<ProcedureActor>,
     uid: Uuid,
     name: String,

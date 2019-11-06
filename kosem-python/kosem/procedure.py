@@ -3,6 +3,8 @@ from contextlib import contextmanager
 
 
 class KosemProcedure(object):
+    from .components import Caption, Button
+
     def __init__(self, connection, name):
         self._con = connection
         self.name = name
@@ -34,8 +36,8 @@ class KosemProcedure(object):
                 if not human_requests:
                     break
 
-    def push_phase(self):
-        uid = self._con.call('PushPhase')
+    def push_phase(self, *components):
+        uid = self._con.call('PushPhase', components=[c.to_json() for c in components])
         return KosemPhase(self, uid)
 
     @contextmanager
@@ -64,3 +66,13 @@ class KosemPhase(object):
         ordinal = self.next_component_ordinal
         self.next_component_ordinal += 1
         return ordinal
+
+    def add_caption(self, text):
+        ordinal = self.__gen_ordinal()
+        self.procedure._con.call('AddComponent',
+                                 phase_uid=self.uid,
+                                 ordinal=ordinal,
+                                 type='Caption',
+                                 params=dict(
+                                     text=text,
+                                 ))
