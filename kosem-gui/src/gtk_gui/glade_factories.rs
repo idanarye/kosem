@@ -35,6 +35,7 @@ impl JoinMenuFactories {
 
 
 pub struct WorkOnProcedureFactories {
+    pub phase_row: GladeFactory<gtk::ListBoxRow>,
     pub window: GladeFactory<gtk::ApplicationWindow>,
 }
 
@@ -42,9 +43,11 @@ impl WorkOnProcedureFactories {
     pub fn new() -> Self {
         let mut xml_extractor = crate::gtk_gui::Asset::xml_extractor("work_on_procedure.glade");
 
+        let phase_row = xml_extractor.extract("phase_row");
         let window = xml_extractor.extract("window");
 
         Self {
+            phase_row,
             window,
         }
     }

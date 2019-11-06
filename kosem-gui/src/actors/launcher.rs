@@ -15,7 +15,7 @@ pub fn start(config: ClientConfig) {
 
         let gui = GuiActor::builder()
             .client(client_ctx.address())
-            .gui_channel(sender)
+            .login_screen_channel(sender)
             .build().start();
 
         let gui_actor_address = gui.clone();

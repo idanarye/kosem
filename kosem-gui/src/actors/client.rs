@@ -30,6 +30,9 @@ use kosem_webapi::pairing_messages::{
     JoinProcedure,
     JoinConfirmation,
 };
+use kosem_webapi::phase_control_messages::{
+    PhasePushed,
+};
 
 use crate::client_config::ClientConfig;
 use crate::actors::gui::GuiActor;
@@ -79,7 +82,11 @@ impl Handler<RpcMessage> for GuiClientActor {
         macro_rules! redirect_to_gui {
             (
                 join_screen = {
-                    $($msg:ident),
+                    $($join_screen_msg:ident),
+                    * $(,)?
+                }
+                procedure_screen = {
+                    $($procedure_screen_msg:ident),
                     * $(,)?
                 }
                 $(
@@ -89,22 +96,35 @@ impl Handler<RpcMessage> for GuiClientActor {
                 {
                     if false {
                         // NOTE: this should fail on "non-exhaustive patterns" if we forget to
-                        // redirect some of the messages supported by `MessageToGui`
+                        // redirect some of the messages supported by `MessageToLoginScreen` or
+                        // `MessageToProcedureScreen`
                         match unreachable!() {
                             $(
                                 #[allow(unreachable_code)]
-                                MessageToGui::$msg(_) => unreachable!()
+                                MessageToLoginScreen::$join_screen_msg(_) => unreachable!()
+                            ),*
+                        }
+                        match unreachable!() {
+                            $(
+                                #[allow(unreachable_code)]
+                                MessageToProcedureScreen::$procedure_screen_msg(_) => unreachable!()
                             ),*
                         }
                     }
                     match msg.method.as_ref() {
                         $(
-                            stringify!($msg) => {
-                                self.gui.do_send(MessageToGui::$msg(MessageFromServer {
+                            stringify!($join_screen_msg) => {
+                                self.gui.do_send(MessageToLoginScreen::$join_screen_msg(MessageFromServer {
                                     server_idx,
-                                    msg: $msg::deserialize(msg.params).unwrap(),
+                                    msg: $join_screen_msg::deserialize(msg.params).unwrap(),
                                 }));
                             }
+                        ),*,
+                        $(
+                            stringify!($procedure_screen_msg) => {
+                                let msg = MessageToProcedureScreen::$procedure_screen_msg($procedure_screen_msg::deserialize(msg.params).unwrap());
+                                self.gui.do_send(MessageToProcedureScreenWrapper { server_idx, msg });
+                        }
                         ),*,
                         $(
                             $pattern => $expr
@@ -119,6 +139,9 @@ impl Handler<RpcMessage> for GuiClientActor {
                 AvailableProcedure,
                 UnavailableProcedure,
                 JoinConfirmation,
+            }
+            procedure_screen = {
+                PhasePushed,
             }
             "LoginConfirmed" => {
                 let params = LoginConfirmed::deserialize(msg.params).unwrap();

@@ -26,16 +26,16 @@ impl GtkGui {
         }
     }
 
-    pub fn message_received(&mut self, msg: MessageToGui) {
+    pub fn message_received(&mut self, msg: MessageToLoginScreen) {
         log::warn!("Gui {:?} got {:?}", self.application, msg);
         match msg {
-            MessageToGui::AvailableProcedure(msg) => {
+            MessageToLoginScreen::AvailableProcedure(msg) => {
                 self.procedure_picking_window.on_procedure_available(msg);
             },
-            MessageToGui::UnavailableProcedure(msg) => {
+            MessageToLoginScreen::UnavailableProcedure(msg) => {
                 self.procedure_picking_window.on_procedure_unavailable(msg.msg.uid);
             },
-            MessageToGui::JoinConfirmation(msg) => {
+            MessageToLoginScreen::JoinConfirmation(msg) => {
                 log::info!("Got join confirmation {:?}", msg);
                 let procedure_request = if let Some(procedure_request) = self.procedure_picking_window.get_procedure_request(msg.msg.request_uid) {
                     procedure_request
@@ -48,12 +48,23 @@ impl GtkGui {
                 self.procedure_picking_window.on_procedure_unavailable(msg.msg.request_uid);
                 self.procedure_picking_window.deactivate();
 
-                let work_on_procedure = WorkOnProcedureWindow::create(
+                let (sender, receiver) = glib::MainContext::channel(glib::PRIORITY_DEFAULT);
+                self.gui_actor.do_send(ProcedureScreenSetChannel {
+                    server_idx: msg.server_idx,
+                    channel: sender,
+                });
+
+                let mut work_on_procedure = WorkOnProcedureWindow::create(
                     self.gui_actor.clone(),
                     self.factories.clone(),
                     procedure_request,
                 );
                 work_on_procedure.activate();
+
+                receiver.attach(None, move |msg| {
+                    work_on_procedure.message_received(msg);
+                    glib::Continue(true)
+                });
             },
         }
     }

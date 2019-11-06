@@ -7,6 +7,7 @@ use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
 use crate::internal_messages::connection::{RpcMessage, ConnectionClosed, SetRole};
 use crate::internal_messages::pairing::PairingPerformed;
 use crate::internal_messages::info_sharing;
+use kosem_webapi::phase_control_messages::*;
 
 use crate::role_actors::ProcedureActor;
 
@@ -57,5 +58,14 @@ impl actix::Handler<info_sharing::GetInfo<info_sharing::HumanDetails>> for Human
         info_sharing::HumanDetails {
             name: self.name.clone(),
         }
+    }
+}
+
+impl actix::Handler<PhasePushed> for HumanActor {
+    type Result = <PhasePushed as actix::Message>::Result;
+
+    fn handle(&mut self, msg: PhasePushed, _ctx: &mut actix::Context<Self>) -> Self::Result {
+        log::info!("Human {} got phase {}", self.uid, msg.phase_uid);
+        self.con_actor.do_send(RpcMessage::new("PhasePushed", msg));
     }
 }

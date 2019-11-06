@@ -6,7 +6,7 @@ use gtk::prelude::*;
 use gio::prelude::*;
 
 use crate::actors::gui::GuiActor;
-use crate::internal_messages::gui_control::MessageToGui;
+use crate::internal_messages::gui_control::MessageToLoginScreen;
 
 mod gui_root;
 mod glade_templating;
@@ -32,7 +32,7 @@ impl Asset {
     }
 }
 
-pub fn launch_gtk_app(gui_actor: Addr<GuiActor>, receiver: glib::Receiver<MessageToGui>) {
+pub fn launch_gtk_app(gui_actor: Addr<GuiActor>, receiver: glib::Receiver<MessageToLoginScreen>) {
     let gui_root = Arc::new(RefCell::new(None));
 
     let application = gtk::Application::new(Some("kosem.gtk-gui"), Default::default()).unwrap();
