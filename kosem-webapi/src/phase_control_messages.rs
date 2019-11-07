@@ -17,16 +17,17 @@ pub struct PushPhase {
 pub struct PhasePushed {
     pub phase_uid: Uuid,
     pub parent_uid: Option<Uuid>,
+    pub components: Vec<Component>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Component {
     pub name: Option<String>,
     #[serde(flatten)]
     pub params: ComponentParams,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "params")]
 pub enum ComponentParams {
     Caption {

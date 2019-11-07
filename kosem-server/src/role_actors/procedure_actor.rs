@@ -104,10 +104,11 @@ impl actix::Handler<PairingPerformed> for ProcedureActor {
             })
         );
 
-        for (&phase_uid, _phase) in self.phases.iter() {
+        for (&phase_uid, phase) in self.phases.iter() {
             msg.human_addr.do_send(PhasePushed {
                 phase_uid: phase_uid,
                 parent_uid: None,
+                components: phase.components.clone(),
             });
         }
     }
@@ -122,14 +123,15 @@ impl actix::Handler<PushPhase> for ProcedureActor {
         let phase = Phase::new(msg.components);
         log::info!("Phase looks like this: {:?}", phase);
         self.phase_uids.push(phase_uid);
-        self.phases.insert(phase_uid, phase);
         for (human_uid, human) in self.humans.iter() {
             log::info!("Informing {} of {}", human_uid, phase_uid);
             human.do_send(PhasePushed {
                 phase_uid: phase_uid,
                 parent_uid: None,
+                components: phase.components.clone(),
             });
         }
+        self.phases.insert(phase_uid, phase);
         Ok(phase_uid)
     }
 }

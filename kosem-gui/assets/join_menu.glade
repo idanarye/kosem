@@ -64,7 +64,7 @@
                     </child>
                     <child>
                       <object class="GtkButton" id="join_request">
-                        <property name="label" translatable="yes">button</property>
+                        <property name="label" translatable="yes">Connect</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
