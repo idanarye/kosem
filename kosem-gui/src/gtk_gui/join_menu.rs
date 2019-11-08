@@ -35,6 +35,14 @@ impl JoinMenuWindow {
             &css_provider,
             gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
 
+        window.connect_delete_event({
+            let gui_actor = gui_actor.clone();
+            move |_window, _evt| {
+                gui_actor.do_send(WindowClosed::JoinScreen);
+                Inhibit(false)
+            }
+        });
+
         Self {
             gui_actor,
             window,

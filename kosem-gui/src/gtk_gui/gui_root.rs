@@ -58,6 +58,7 @@ impl GtkGui {
                     self.gui_actor.clone(),
                     self.factories.clone(),
                     procedure_request,
+                    msg.server_idx,
                 );
                 work_on_procedure.activate();
 

@@ -43,3 +43,11 @@ pub struct ProcedureScreenSetChannel {
     pub server_idx: usize,
     pub channel: glib::Sender<MessageToProcedureScreen>,
 }
+
+#[derive(Debug, Message)]
+pub enum WindowClosed {
+    JoinScreen,
+    ProcedureScreen {
+        server_idx: usize,
+    },
+}

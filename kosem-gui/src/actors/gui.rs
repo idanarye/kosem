@@ -54,6 +54,30 @@ impl Handler<MessageToProcedureScreenWrapper> for GuiActor {
     }
 }
 
+impl Handler<WindowClosed> for GuiActor {
+    type Result = <WindowClosed as actix::Message>::Result;
+
+    fn handle(&mut self, msg: WindowClosed, _ctx: &mut Self::Context) -> Self::Result {
+        log::info!("Got {:?}", msg);
+        match msg {
+            WindowClosed::JoinScreen => {
+                if self.procedure_screen_channels.is_empty() {
+                    log::info!("Join screen closed - exiting");
+                    System::current().stop();
+                }
+            }
+            WindowClosed::ProcedureScreen { server_idx } => {
+                self.procedure_screen_channels.remove(&server_idx);
+                // TODO: send disconnect message?
+                if self.procedure_screen_channels.is_empty() {
+                    log::info!("Last procedure screen closed - exiting");
+                    System::current().stop();
+                }
+            }
+        }
+    }
+}
+
 impl Handler<UserSelectedProcedure> for GuiActor {
     type Result = <UserSelectedProcedure as actix::Message>::Result;
 

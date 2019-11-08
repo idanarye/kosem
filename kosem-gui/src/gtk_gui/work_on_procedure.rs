@@ -13,7 +13,10 @@ use kosem_webapi::phase_control_messages::{
 use crate::actors::gui::GuiActor;
 use crate::gtk_gui::GladeFactories;
 use crate::gtk_gui::glade_factories::ComponentFactories;
-use crate::internal_messages::gui_control::MessageToProcedureScreen;
+use crate::internal_messages::gui_control::{
+    MessageToProcedureScreen,
+    WindowClosed,
+};
 
 pub struct WorkOnProcedureWindow {
     #[allow(unused)]
@@ -32,6 +35,7 @@ impl WorkOnProcedureWindow {
         gui_actor: Addr<GuiActor>,
         factories: Rc<GladeFactories>,
         available_procedure_msg: kosem_webapi::pairing_messages::AvailableProcedure,
+        server_idx: usize,
     ) -> Self {
         let window_builder = factories.work_on_procedure.window.build();
 
@@ -40,6 +44,16 @@ impl WorkOnProcedureWindow {
         let phases_list = window_builder.get_object("phases_list");
 
         let window: gtk::ApplicationWindow = window_builder.get();
+
+        window.connect_delete_event({
+            let gui_actor = gui_actor.clone();
+            move |_window, _evt| {
+                gui_actor.do_send(WindowClosed::ProcedureScreen {
+                    server_idx,
+                });
+                Inhibit(false)
+            }
+        });
 
         Self {
             gui_actor,

@@ -26,5 +26,7 @@ pub fn start(config: ClientConfig) {
         GuiClientActor::builder().gui(gui).config(config).build()
     });
 
+    log::info!("Running system");
     sys.run().unwrap();
+    log::info!("Closing system");
 }
