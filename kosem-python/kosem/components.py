@@ -11,6 +11,8 @@ class KosemComponent(object):
             params=self.params,
             name=self.name)
 
+    is_message_relevant = None
+
 
 class Caption(KosemComponent):
     def __init__(self, text):
@@ -20,3 +22,6 @@ class Caption(KosemComponent):
 class Button(KosemComponent):
     def __init__(self, text):
         self.params = dict(text=text)
+
+    def is_message_relevant(self, msg):
+        return msg['method'] == 'ButtonClicked'

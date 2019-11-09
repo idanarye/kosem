@@ -37,8 +37,21 @@ class KosemProcedure(object):
                     break
 
     def push_phase(self, *components):
+        is_message_relevant = [
+            component.is_message_relevant
+            for component in components
+            if component.is_message_relevant is not None]
+        if is_message_relevant:
+            stream = self._con.stream_messages() 
+        else:
+            stream = None
         uid = self._con.call('PushPhase', components=[c.to_json() for c in components])
-        return KosemPhase(self, uid)
+        if stream:
+            stream = (
+                msg for msg in stream
+                if msg['params'].get('phase_uid') == uid
+                and any(pred(msg) for pred in is_message_relevant))
+        return KosemPhase(self, uid, stream)
 
     @contextmanager
     def phase(self):
@@ -57,10 +70,11 @@ class KosemHuman(object):
 
 
 class KosemPhase(object):
-    def __init__(self, procedure, uid):
+    def __init__(self, procedure, uid, stream):
         self.procedure = procedure
         self.uid = uid
         self.next_component_ordinal = 0
+        self.stream = stream
 
     def __gen_ordinal(self):
         ordinal = self.next_component_ordinal
@@ -76,3 +90,12 @@ class KosemPhase(object):
                                  params=dict(
                                      text=text,
                                  ))
+
+    def relevant_messages(self):
+        if self.stream:
+            yield from self.stream
+
+    def wait_for_button(self):
+        for msg in self.relevant_messages():
+            if msg['method'] == 'ButtonClicked':
+                return msg['params'].get('button_name', None)

@@ -14,7 +14,6 @@ use crate::role_actors::ProcedureActor;
 #[derive(typed_builder::TypedBuilder)]
 pub struct HumanActor {
     con_actor: actix::Addr<WsJrpc>,
-    #[allow(unused)]
     procedure_actor: actix::Addr<ProcedureActor>,
     uid: Uuid,
     name: String,
@@ -68,5 +67,18 @@ impl actix::Handler<PhasePushed> for HumanActor {
     fn handle(&mut self, msg: PhasePushed, _ctx: &mut actix::Context<Self>) -> Self::Result {
         log::info!("Human {} got phase {}", self.uid, msg.phase_uid);
         self.con_actor.do_send(RpcMessage::new("PhasePushed", msg));
+    }
+}
+
+impl actix::Handler<ClickButton> for HumanActor {
+    type Result = <ClickButton as actix::Message>::Result;
+
+    fn handle(&mut self, msg: ClickButton, _ctx: &mut actix::Context<Self>) -> Self::Result {
+        self.procedure_actor.do_send(ButtonClicked {
+            human_uid: self.uid,
+            phase_uid: msg.phase_uid,
+            button_name: msg.button_name,
+        });
+        Ok(())
     }
 }

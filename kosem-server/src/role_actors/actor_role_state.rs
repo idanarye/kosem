@@ -114,6 +114,7 @@ impl ActorRoleState {
             RequestHuman => ProcedureActor;
             JoinProcedure => JoinerActor;
             PushPhase => ProcedureActor;
+            ClickButton => HumanActor;
         }
     }
 

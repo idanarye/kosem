@@ -37,3 +37,17 @@ pub enum ComponentParams {
         text: String,
     },
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, Message)]
+#[rtype(result="KosemResult<()>")]
+pub struct ClickButton {
+    pub phase_uid: Uuid,
+    pub button_name: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Message)]
+pub struct ButtonClicked {
+    pub human_uid: Uuid,
+    pub phase_uid: Uuid,
+    pub button_name: Option<String>,
+}

@@ -135,3 +135,11 @@ impl actix::Handler<PushPhase> for ProcedureActor {
         Ok(phase_uid)
     }
 }
+
+impl actix::Handler<ButtonClicked> for ProcedureActor {
+    type Result = <ButtonClicked as actix::Message>::Result;
+
+    fn handle(&mut self, msg: ButtonClicked, _ctx: &mut actix::Context<Self>) -> Self::Result {
+        self.con_actor.do_send(RpcMessage::new("ButtonClicked", msg));
+    }
+}

@@ -32,6 +32,7 @@ use kosem_webapi::pairing_messages::{
 };
 use kosem_webapi::phase_control_messages::{
     PhasePushed,
+    ClickButton,
 };
 
 use crate::client_config::ClientConfig;
@@ -165,5 +166,19 @@ impl Handler<UserSelectedProcedure> for GuiClientActor {
                 uid: msg.procedure_uid,
             }));
         });
+    }
+}
+
+impl Handler<UserClickedButton> for GuiClientActor {
+    type Result = <UserClickedButton as actix::Message>::Result;
+
+    fn handle(&mut self, msg: UserClickedButton, _ctx: &mut Self::Context) -> Self::Result {
+        log::info!("GuiClientActor UserClickedButton");
+        if let Some((_, client)) = self.client_actors.get(&msg.server_idx) {
+            client.do_send(RpcMessage::new("ClickButton", ClickButton {
+                phase_uid: msg.phase_uid,
+                button_name: msg.button_name,
+            }));
+        }
     }
 }

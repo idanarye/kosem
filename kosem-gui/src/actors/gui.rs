@@ -86,3 +86,11 @@ impl Handler<UserSelectedProcedure> for GuiActor {
         self.client.do_send(msg);
     }
 }
+
+impl Handler<UserClickedButton> for GuiActor {
+    type Result = <UserClickedButton as actix::Message>::Result;
+
+    fn handle(&mut self, msg: UserClickedButton, _ctx: &mut Self::Context) -> Self::Result {
+        self.client.do_send(msg);
+    }
+}
