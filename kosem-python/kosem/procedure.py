@@ -93,9 +93,11 @@ class KosemPhase(object):
 
     def relevant_messages(self):
         if self.stream:
-            yield from self.stream
+            for msg in self.stream:
+                yield msg
 
     def wait_for_button(self):
         for msg in self.relevant_messages():
+            print('Got msg', msg)
             if msg['method'] == 'ButtonClicked':
                 return msg['params'].get('button_name', None)
