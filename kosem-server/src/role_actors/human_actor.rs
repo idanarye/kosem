@@ -70,6 +70,15 @@ impl actix::Handler<PhasePushed> for HumanActor {
     }
 }
 
+impl actix::Handler<PhasePopped> for HumanActor {
+    type Result = <PhasePopped as actix::Message>::Result;
+
+    fn handle(&mut self, msg: PhasePopped, _ctx: &mut actix::Context<Self>) -> Self::Result {
+        log::info!("Human {} got phase {}", self.uid, msg.phase_uid);
+        self.con_actor.do_send(RpcMessage::new("PhasePopped", msg));
+    }
+}
+
 impl actix::Handler<ClickButton> for HumanActor {
     type Result = <ClickButton as actix::Message>::Result;
 

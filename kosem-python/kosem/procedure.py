@@ -54,9 +54,10 @@ class KosemProcedure(object):
         return KosemPhase(self, uid, stream)
 
     @contextmanager
-    def phase(self):
-        phase = self.push_phase()
+    def phase(self, *components):
+        phase = self.push_phase(*components)
         yield phase
+        phase.pop()
 
 
 class KosemHuman(object):
@@ -101,3 +102,6 @@ class KosemPhase(object):
             print('Got msg', msg)
             if msg['method'] == 'ButtonClicked':
                 return msg['params'].get('button_name', None)
+
+    def pop(self):
+        self.procedure._con.call('PopPhase', phase_uid=self.uid)

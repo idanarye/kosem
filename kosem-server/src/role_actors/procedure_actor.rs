@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use actix::prelude::*;
 
-use kosem_webapi::Uuid;
+use kosem_webapi::{Uuid, KosemError};
 use kosem_webapi::pairing_messages::*;
 use kosem_webapi::phase_control_messages::*;
 
@@ -133,6 +133,21 @@ impl actix::Handler<PushPhase> for ProcedureActor {
         }
         self.phases.insert(phase_uid, phase);
         Ok(phase_uid)
+    }
+}
+
+impl actix::Handler<PopPhase> for ProcedureActor {
+    type Result = <PopPhase as actix::Message>::Result;
+
+    fn handle(&mut self, msg: PopPhase, _ctx: &mut actix::Context<Self>) -> Self::Result {
+        let _phase = self.phases.remove(&msg.phase_uid)
+            .ok_or_else(|| KosemError::new("Phase does not exist").with("phase_uid", msg.phase_uid))?;
+        for human in self.humans.values() {
+            human.do_send(PhasePopped {
+                phase_uid: msg.phase_uid,
+            });
+        }
+        Ok(())
     }
 }
 

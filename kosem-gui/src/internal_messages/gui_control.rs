@@ -24,6 +24,7 @@ pub enum MessageToLoginScreen {
 #[derive(Debug)]
 pub enum MessageToProcedureScreen {
     PhasePushed(phase_control_messages::PhasePushed),
+    PhasePopped(phase_control_messages::PhasePopped),
 }
 
 #[derive(Debug, Message)]

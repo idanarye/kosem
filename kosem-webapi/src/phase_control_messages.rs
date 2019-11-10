@@ -38,6 +38,17 @@ pub enum ComponentParams {
     },
 }
 
+#[derive(Debug, Serialize, Deserialize, Message)]
+#[rtype(result="KosemResult<()>")]
+pub struct PopPhase {
+    pub phase_uid: Uuid,
+}
+
+#[derive(Debug, Serialize, Deserialize, Message)]
+pub struct PhasePopped {
+    pub phase_uid: Uuid,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Message)]
 #[rtype(result="KosemResult<()>")]
 pub struct ClickButton {

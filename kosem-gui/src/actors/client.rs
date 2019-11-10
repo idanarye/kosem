@@ -32,6 +32,7 @@ use kosem_webapi::pairing_messages::{
 };
 use kosem_webapi::phase_control_messages::{
     PhasePushed,
+    PhasePopped,
     ClickButton,
 };
 
@@ -143,6 +144,7 @@ impl Handler<RpcMessage> for GuiClientActor {
             }
             procedure_screen = {
                 PhasePushed,
+                PhasePopped,
             }
             "LoginConfirmed" => {
                 let params = LoginConfirmed::deserialize(msg.params).unwrap();

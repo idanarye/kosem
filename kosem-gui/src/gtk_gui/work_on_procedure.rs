@@ -77,13 +77,6 @@ impl WorkOnProcedureWindow {
             MessageToProcedureScreen::PhasePushed(msg) => {
                 log::info!("Add phase {}", msg.phase_uid);
                 let row_builder = self.factories.work_on_procedure.phase_row.build();
-                // let parent_uid_label = row_builder.get_object::<gtk::Label>("parent_uid");
-                // if let Some(uid) = msg.parent_uid {
-                    // parent_uid_label.set_text(&uid.to_string());
-                // } else {
-                    // parent_uid_label.set_text("");
-                // }
-                // row_builder.get_object::<gtk::Label>("phase_uid").set_text(&msg.phase_uid.to_string());
                 let components_box = row_builder.get_object("components_box");
                 let row = row_builder.get();
                 self.phases_list.add(&row);
@@ -94,8 +87,15 @@ impl WorkOnProcedureWindow {
                     components_box,
                 };
                 self.set_components(&mut phase, msg.components);
-                // phase.set_components(msg.components, &self.factories.work_on_procedure.components);
                 self.phases.insert(phase.uid, phase);
+            },
+            MessageToProcedureScreen::PhasePopped(msg) => {
+                if let Some(phase) = self.phases.remove(&msg.phase_uid) {
+                    self.phases_list.remove(&phase.row);
+                } else {
+                    log::warn!("Requested to remove phase {}, but it does not exist", msg.phase_uid);
+                    return;
+                }
             },
         }
     }
