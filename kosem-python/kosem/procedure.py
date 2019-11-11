@@ -14,6 +14,12 @@ class KosemProcedure(object):
     def _login(self):
         self.uid = self._con.call('LoginAsProcedure', name=self.name)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self._con.close()
+
     @contextmanager
     def request_humans(self):
         stream = self._con.stream_messages()
@@ -36,7 +42,7 @@ class KosemProcedure(object):
                 if not human_requests:
                     break
 
-    def push_phase(self, *components):
+    def phase(self, *components):
         is_message_relevant = [
             component.is_message_relevant
             for component in components
@@ -52,12 +58,6 @@ class KosemProcedure(object):
                 if msg['params'].get('phase_uid') == uid
                 and any(pred(msg) for pred in is_message_relevant))
         return KosemPhase(self, uid, stream)
-
-    @contextmanager
-    def phase(self, *components):
-        phase = self.push_phase(*components)
-        yield phase
-        phase.pop()
 
 
 class KosemHuman(object):
@@ -99,9 +99,14 @@ class KosemPhase(object):
 
     def wait_for_button(self):
         for msg in self.relevant_messages():
-            print('Got msg', msg)
             if msg['method'] == 'ButtonClicked':
                 return msg['params'].get('button_name', None)
 
     def pop(self):
         self.procedure._con.call('PopPhase', phase_uid=self.uid)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.pop()

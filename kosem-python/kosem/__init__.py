@@ -3,5 +3,5 @@ from .procedure import KosemProcedure
 
 
 def connect_procedure(host, port, name):
-    connection = KosemWsJrpcConnection('localhost', 8206)
-    return KosemProcedure(connection, 'doctor test')
+    connection = KosemWsJrpcConnection(host, port)
+    return KosemProcedure(connection, name)
