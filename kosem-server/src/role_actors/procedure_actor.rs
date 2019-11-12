@@ -16,6 +16,7 @@ use crate::internal_messages::pairing::{
     RemoveRequestForHuman,
     ProcedureRequestingHuman,
     PairingPerformed,
+    ProcedureTerminated,
 };
 use crate::internal_messages::info_sharing;
 
@@ -46,6 +47,11 @@ impl actix::Actor for ProcedureActor {
         for pending_request in self.pending_requests_for_humans.iter() {
             PairingActor::from_registry().do_send(RemoveRequestForHuman {
                 uid: *pending_request,
+            });
+        }
+        for human in self.humans.values() {
+            human.do_send(ProcedureTerminated {
+                procedure_uid: self.uid,
             });
         }
     }

@@ -97,6 +97,9 @@ impl WorkOnProcedureWindow {
                     return;
                 }
             },
+            MessageToProcedureScreen::ProcedureFinished(_msg) => {
+                TODO
+            },
         }
     }
 

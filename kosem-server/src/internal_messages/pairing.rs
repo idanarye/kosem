@@ -49,3 +49,8 @@ pub struct PairingPerformed {
     pub request_uid: Uuid,
     pub procedure_addr: Addr<ProcedureActor>,
 }
+
+#[derive(Message)]
+pub struct ProcedureTerminated {
+    pub procedure_uid: Uuid,
+}

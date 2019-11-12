@@ -67,6 +67,9 @@ impl GtkGui {
                     glib::Continue(true)
                 });
             },
+            MessageToLoginScreen::ShowAgain => {
+                self.procedure_picking_window.activate();
+            }
         }
     }
 }

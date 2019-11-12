@@ -42,3 +42,7 @@ pub struct HumanJoined {
     pub human_uid: Uuid,
     pub human_name: String,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone, Message)]
+pub struct ProcedureFinished {
+}

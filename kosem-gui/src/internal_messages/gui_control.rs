@@ -19,12 +19,14 @@ pub enum MessageToLoginScreen {
     AvailableProcedure(MessageFromServer<pairing_messages::AvailableProcedure>),
     UnavailableProcedure(MessageFromServer<pairing_messages::UnavailableProcedure>),
     JoinConfirmation(MessageFromServer<pairing_messages::JoinConfirmation>),
+    ShowAgain,
 }
 
 #[derive(Debug)]
 pub enum MessageToProcedureScreen {
     PhasePushed(phase_control_messages::PhasePushed),
     PhasePopped(phase_control_messages::PhasePopped),
+    ProcedureFinished(pairing_messages::ProcedureFinished),
 }
 
 #[derive(Debug, Message)]

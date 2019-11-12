@@ -29,6 +29,7 @@ use kosem_webapi::pairing_messages::{
     UnavailableProcedure,
     JoinProcedure,
     JoinConfirmation,
+    ProcedureFinished,
 };
 use kosem_webapi::phase_control_messages::{
     PhasePushed,
@@ -104,7 +105,8 @@ impl Handler<RpcMessage> for GuiClientActor {
                             $(
                                 #[allow(unreachable_code)]
                                 MessageToLoginScreen::$join_screen_msg(_) => unreachable!()
-                            ),*
+                            ),*,
+                            MessageToLoginScreen::ShowAgain => unreachable!(),
                         }
                         match unreachable!() {
                             $(
@@ -145,6 +147,7 @@ impl Handler<RpcMessage> for GuiClientActor {
             procedure_screen = {
                 PhasePushed,
                 PhasePopped,
+                ProcedureFinished,
             }
             "LoginConfirmed" => {
                 let params = LoginConfirmed::deserialize(msg.params).unwrap();
