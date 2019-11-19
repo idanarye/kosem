@@ -32,6 +32,7 @@ pub enum MessageToProcedureScreen {
 #[derive(Debug, Message)]
 pub struct MessageToProcedureScreenWrapper {
     pub server_idx: usize,
+    pub request_uid: Uuid,
     pub msg: MessageToProcedureScreen,
 }
 
@@ -44,6 +45,7 @@ pub struct UserSelectedProcedure {
 #[derive(Message)]
 pub struct ProcedureScreenSetChannel {
     pub server_idx: usize,
+    pub request_uid: Uuid,
     pub channel: glib::Sender<MessageToProcedureScreen>,
 }
 

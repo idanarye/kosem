@@ -127,14 +127,18 @@ impl Handler<RpcMessage> for GuiClientActor {
                         ),*,
                         $(
                             stringify!($procedure_screen_msg) => {
-                                let msg = MessageToProcedureScreen::$procedure_screen_msg($procedure_screen_msg::deserialize(msg.params).unwrap());
+                                let msg = $procedure_screen_msg::deserialize(msg.params).unwrap();
                                 $(
                                     {
                                         let $procedure_screen_param = &msg;
                                         $procedure_screen_also_do;
                                     }
                                 )*
-                                self.gui.do_send(MessageToProcedureScreenWrapper { server_idx, msg });
+                                self.gui.do_send(MessageToProcedureScreenWrapper {
+                                    server_idx,
+                                    request_uid: msg.request_uid, // all messages to procedure screen must have `request_uid`
+                                    msg: MessageToProcedureScreen::$procedure_screen_msg(msg),
+                                });
                         }
                         ),*,
                         $(

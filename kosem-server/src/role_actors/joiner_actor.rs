@@ -119,17 +119,7 @@ impl actix::Handler<CreateNewHumanActor> for JoinerActor {
 impl actix::Handler<PairingPerformed> for JoinerActor {
     type Result = <PairingPerformed as actix::Message>::Result;
 
-    fn handle(&mut self, msg: PairingPerformed, ctx: &mut actix::Context<Self>) -> Self::Result {
-        ctx.spawn(
-            msg.human_addr.clone().send(msg)
-            .into_actor(self)
-            .map_err(|e, _, _| {
-                panic!(e);
-            })
-            .map(|_, _, ctx| {
-                // NOTE: We only stop this after we *finished* informing the new HumanActor.
-                ctx.stop();
-            })
-        );
+    fn handle(&mut self, msg: PairingPerformed, _ctx: &mut actix::Context<Self>) -> Self::Result {
+        msg.human_addr.clone().do_send(msg);
     }
 }

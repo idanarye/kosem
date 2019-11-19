@@ -88,11 +88,13 @@ impl actix::Handler<HumanJoiningProcedure> for PairingActor {
             },
         };
 
-        let joiner = joiner_entry.remove();
+        let joiner = joiner_entry.get();
+        let joiner_addr = joiner.addr.clone();
+        let joiner_uid = joiner.uid;
         let request = request_entry.remove();
 
         Box::new(
-            joiner.addr.send(CreateNewHumanActor {
+            joiner_addr.send(CreateNewHumanActor {
                 request_uid: request.uid,
                 procedure_addr: request.addr.clone(),
             })
@@ -102,21 +104,23 @@ impl actix::Handler<HumanJoiningProcedure> for PairingActor {
             })
             .and_then(move |human_addr, actor, _ctx| {
                 let pairing_performed = PairingPerformed {
-                    human_uid: joiner.uid,
+                    human_uid: joiner_uid,
                     human_addr,
                     request_uid: request.uid,
                     procedure_addr: request.addr,
                 };
 
-                joiner.addr.do_send(pairing_performed.clone());
+                joiner_addr.do_send(pairing_performed.clone());
                 pairing_performed.procedure_addr.clone().do_send(pairing_performed);
 
                 // NOTE: this does not include the joiner that accepted the request, because they were just
                 // removed.
                 for joiner in actor.available_joiners.values() {
-                    joiner.addr.do_send(RemoveRequestForHuman {
-                        uid: request.uid,
-                    });
+                    if joiner.uid != joiner_uid {
+                        joiner.addr.do_send(RemoveRequestForHuman {
+                            uid: request.uid,
+                        });
+                    }
                 }
                 fut::ok(())
             }))

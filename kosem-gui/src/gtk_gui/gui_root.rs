@@ -51,6 +51,7 @@ impl GtkGui {
                 let (sender, receiver) = glib::MainContext::channel(glib::PRIORITY_DEFAULT);
                 self.gui_actor.do_send(ProcedureScreenSetChannel {
                     server_idx: msg.server_idx,
+                    request_uid: msg.msg.request_uid,
                     channel: sender,
                 });
 

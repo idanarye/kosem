@@ -51,7 +51,7 @@ impl actix::Handler<LoginAsHuman> for NotYetIdentifiedActor {
         let human_uid = Uuid::new_v4();
         let actor = JoinerActor::builder().uid(human_uid).con_actor(self.con_actor.clone()).name(msg.name).build();
         let actor = actor.start();
-        self.con_actor.do_send(SetRole::Joiner(actor));
+        self.con_actor.do_send(SetRole::Human(actor));
         ctx.stop();
         Ok(human_uid)
     }

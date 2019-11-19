@@ -83,7 +83,9 @@ impl StreamHandler<ws::Frame, WsProtocolError> for ClientActor {
             },
             ws::Frame::Text(Some(txt)) => {
                 let txt = String::from_utf8(Vec::from(txt.as_ref())).unwrap();
-                let request: JrpcMessage = serde_json::from_str(&txt).unwrap();
+                let request: JrpcMessage = serde_json::from_str(&txt)
+                    .map_err(|err| format!("Unable to parse {:?} - {:?}", txt, err))
+                    .unwrap();
                 self.routing.rpc_message.do_send(RpcMessage {
                     idx: Some(self.idx),
                     method: request.method,

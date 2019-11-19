@@ -5,7 +5,7 @@ use actix_web_actors::ws;
 use kosem_webapi::protocols::{JrpcMessage, JrpcResponse, JrpcError};
 
 use crate::role_actors;
-use crate::internal_messages::connection::{RpcMessage, SetRole};
+use crate::internal_messages::connection::{RpcMessage, SetRole, AddHumanActor};
 
 pub struct WsJrpc {
     pub state: role_actors::ActorRoleState,
@@ -194,12 +194,24 @@ impl actix::Handler<SetRole> for WsJrpc {
             SetRole::Procedure(addr) => {
                 self.state = role_actors::ActorRoleState::ProcedureActor(addr);
             }
-            SetRole::Joiner(addr) => {
-                self.state = role_actors::ActorRoleState::JoinerActor(addr);
-            }
             SetRole::Human(addr) => {
-                self.state = role_actors::ActorRoleState::HumanActor(addr);
+                self.state = role_actors::ActorRoleState::HumanActor {
+                    joiner: addr,
+                    procedures: Default::default(),
+                };
             }
+        }
+    }
+}
+
+impl actix::Handler<AddHumanActor> for WsJrpc {
+    type Result = <AddHumanActor as actix::Message>::Result;
+
+    fn handle(&mut self, msg: AddHumanActor, _ctx: &mut Self::Context) -> Self::Result {
+        if let role_actors::ActorRoleState::HumanActor { ref mut procedures, .. } = self.state {
+            procedures.insert(msg.request_uid, msg.addr);
+        } else {
+            panic!("Expected human role");
         }
     }
 }

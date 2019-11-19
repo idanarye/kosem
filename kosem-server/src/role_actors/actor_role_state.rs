@@ -1,7 +1,9 @@
+use std::collections::HashMap;
+
 use actix::prelude::*;
 use serde::Deserialize;
 
-use kosem_webapi::KosemResult;
+use kosem_webapi::{Uuid, KosemResult};
 use kosem_webapi::handshake_messages::*;
 use kosem_webapi::pairing_messages::*;
 use kosem_webapi::phase_control_messages::*;
@@ -19,8 +21,10 @@ pub enum ActorRoleState {
     Init,
     NotYetIdentifiedActor(actix::Addr<NotYetIdentifiedActor>),
     ProcedureActor(actix::Addr<ProcedureActor>),
-    JoinerActor(actix::Addr<JoinerActor>),
-    HumanActor(actix::Addr<HumanActor>),
+    HumanActor {
+        joiner: actix::Addr<JoinerActor>,
+        procedures: HashMap<Uuid, actix::Addr<HumanActor>>,
+    },
 }
 
 pub enum RoutingError<E: serde::de::Error> {
@@ -48,8 +52,7 @@ impl ActorRoleState {
             Self::Init => "init",
             Self::NotYetIdentifiedActor(_) => "not-logged-in",
             Self::ProcedureActor(_) => "procedure",
-            Self::JoinerActor(_) => "joiner",
-            Self::HumanActor(_) => "human",
+            Self::HumanActor { .. } => "human",
         }
     }
 
@@ -58,7 +61,7 @@ impl ActorRoleState {
             "Init" => "init",
             "NotYetIdentifiedActor" => "not-logged-in",
             "ProcedureActor" => "procedure",
-            "JoinerActor" => "joiner",
+            "JoinerActor" => "human",
             "HumanActor" => "human",
             _ => unreachable!("Unhandled variant"),
         }
@@ -70,8 +73,39 @@ impl ActorRoleState {
         params: Deser,
         _error_classifier: impl FnOnce(&str, Deser::Error),
     ) -> Result<ResponseFuture<KosemResult<serde_value::Value>, MailboxError>, RoutingError<Deser::Error>> {
+
+        macro_rules! get_actor {
+            (NotYetIdentifiedActor, $msg:expr) => {
+                if let Self::NotYetIdentifiedActor(actor) = self {
+                    Some(actor)
+                } else {
+                    None
+                }
+            };
+            (ProcedureActor, $msg:expr) => {
+                if let Self::ProcedureActor(actor) = self {
+                    Some(actor)
+                } else {
+                    None
+                }
+            };
+            (JoinerActor, $msg:expr) => {
+                if let Self::HumanActor { joiner, .. } = self {
+                    Some(joiner)
+                } else {
+                    None
+                }
+            };
+            (HumanActor, $msg:expr) => {
+                if let Self::HumanActor { procedures, .. } = self {
+                    Some(&procedures[&$msg.request_uid])
+                } else {
+                    None
+                }
+            };
+        }
         macro_rules! route {
-            ($( $method:ident => $($role:ident),*; )*) => {
+            ($( $method:ident => $role:ident; )*) => {
                 match method {
                     $(
                         stringify!($method) => {
@@ -81,22 +115,19 @@ impl ActorRoleState {
                                     error
                                 }
                             })?;
-                            match self {
-                                $(
-                                    ActorRoleState::$role(actor) => {
-                                        Ok(Box::new(actor.send(params)
-                                                .map(|res| {
-                                                    res.map(|val| {
-                                                        serde_value::to_value(val).unwrap()
-                                                    })
-                                                })))
-                                    }
-                                ),*,
-                                _ => Err(RoutingError::MethodNotAllowedForRole {
+                            if let Some(actor) = get_actor!($role, params) {
+                                Ok(Box::new(actor.send(params)
+                                        .map(|res| {
+                                            res.map(|val| {
+                                                serde_value::to_value(val).unwrap()
+                                            })
+                                        })))
+                            } else {
+                                 Err(RoutingError::MethodNotAllowedForRole {
                                     method: method.to_owned(),
                                     current_role: self.role_name(),
                                     allowed_roles: vec![
-                                        $(Self::variant_text_to_role_name(stringify!($role))),*
+                                        Self::variant_text_to_role_name(stringify!($role))
                                     ],
                                 })
                             }
@@ -126,8 +157,12 @@ impl ActorRoleState {
             ActorRoleState::Init => {},
             ActorRoleState::NotYetIdentifiedActor(addr) => addr.do_send(msg),
             ActorRoleState::ProcedureActor(addr) => addr.do_send(msg),
-            ActorRoleState::JoinerActor(addr) => addr.do_send(msg),
-            ActorRoleState::HumanActor(addr) => addr.do_send(msg),
+            ActorRoleState::HumanActor { joiner, procedures } => {
+                for procedure in procedures.values() {
+                    procedure.do_send(msg.clone());
+                }
+                joiner.do_send(msg);
+            },
         }
     }
 }
