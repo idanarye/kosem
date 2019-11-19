@@ -190,6 +190,7 @@ impl Handler<UserClickedButton> for GuiClientActor {
         log::info!("GuiClientActor UserClickedButton");
         if let Some((_, client)) = self.client_actors.get(&msg.server_idx) {
             client.do_send(RpcMessage::new("ClickButton", ClickButton {
+                request_uid: msg.request_uid,
                 phase_uid: msg.phase_uid,
                 button_name: msg.button_name,
             }));

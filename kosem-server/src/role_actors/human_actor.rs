@@ -16,6 +16,7 @@ pub struct HumanActor {
     con_actor: actix::Addr<WsJrpc>,
     procedure_actor: actix::Addr<ProcedureActor>,
     uid: Uuid,
+    request_uid: Uuid,
     name: String,
 }
 
@@ -56,6 +57,7 @@ impl actix::Handler<ProcedureTerminated> for HumanActor {
 
     fn handle(&mut self, _msg: ProcedureTerminated, _ctx: &mut actix::Context<Self>) -> Self::Result {
         self.con_actor.do_send(RpcMessage::new("ProcedureFinished", kosem_webapi::pairing_messages::ProcedureFinished {
+            request_uid: self.request_uid,
         }));
     }
 }

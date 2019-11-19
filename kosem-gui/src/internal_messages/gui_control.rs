@@ -58,6 +58,7 @@ pub enum WindowClosed {
 #[derive(Message)]
 pub struct UserClickedButton {
     pub server_idx: usize,
+    pub request_uid: Uuid,
     pub phase_uid: Uuid,
     pub button_name: Option<String>,
 }

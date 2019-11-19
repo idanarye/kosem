@@ -15,6 +15,7 @@ pub struct PushPhase {
 
 #[derive(Debug, Serialize, Deserialize, Message)]
 pub struct PhasePushed {
+    pub request_uid: Uuid,
     pub phase_uid: Uuid,
     pub parent_uid: Option<Uuid>,
     pub components: Vec<Component>,
@@ -46,12 +47,14 @@ pub struct PopPhase {
 
 #[derive(Debug, Serialize, Deserialize, Message)]
 pub struct PhasePopped {
+    pub request_uid: Uuid,
     pub phase_uid: Uuid,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Message)]
 #[rtype(result="KosemResult<()>")]
 pub struct ClickButton {
+    pub request_uid: Uuid,
     pub phase_uid: Uuid,
     pub button_name: Option<String>,
 }

@@ -93,6 +93,7 @@ impl actix::Handler<HumanJoiningProcedure> for PairingActor {
 
         Box::new(
             joiner.addr.send(CreateNewHumanActor {
+                request_uid: request.uid,
                 procedure_addr: request.addr.clone(),
             })
             .into_actor(self)

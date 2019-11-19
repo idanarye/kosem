@@ -118,11 +118,13 @@ impl WorkOnProcedureWindow {
                     button.set_label(text);
                     let name = component.name.clone();
                     let server_idx = self.server_idx;
+                    let request_uid = self.request_uid;
                     let phase_uid = phase.uid;
                     let gui_actor = self.gui_actor.clone();
                     button.connect_clicked(move |_| {
                         gui_actor.do_send(UserClickedButton {
                             server_idx,
+                            request_uid,
                             phase_uid,
                             button_name: name.clone(),
                         });

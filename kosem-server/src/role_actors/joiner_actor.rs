@@ -110,6 +110,7 @@ impl actix::Handler<CreateNewHumanActor> for JoinerActor {
             .con_actor(self.con_actor.clone())
             .procedure_actor(msg.procedure_addr)
             .uid(self.uid)
+            .request_uid(msg.request_uid)
             .name(self.name.clone())
             .build().start()
     }

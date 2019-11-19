@@ -39,6 +39,7 @@ pub struct HumanJoiningProcedure {
 #[derive(Message)]
 #[rtype(result="Addr<HumanActor>")]
 pub struct CreateNewHumanActor {
+    pub request_uid: Uuid,
     pub procedure_addr: Addr<ProcedureActor>,
 }
 

@@ -28,7 +28,7 @@ pub struct ProcedureActor {
     #[builder(default)]
     pending_requests_for_humans: HashSet<Uuid>,
     #[builder(default)]
-    humans: HashMap<Uuid, Addr<HumanActor>>,
+    humans: HashMap<Uuid, Addr<HumanActor>>,  // NOTE: the key is the request UID, not the human UID
     #[builder(default)]
     phase_uids: Vec<Uuid>,
     #[builder(default)]
@@ -93,7 +93,7 @@ impl actix::Handler<PairingPerformed> for ProcedureActor {
             log::info!("Procedure {} still needs {} more humans...", self.name, self.pending_requests_for_humans.len());
         }
 
-        self.humans.insert(msg.human_uid, msg.human_addr.clone());
+        self.humans.insert(msg.request_uid, msg.human_addr.clone());
 
         let PairingPerformed { human_uid, request_uid, .. } = msg;
 
@@ -112,7 +112,8 @@ impl actix::Handler<PairingPerformed> for ProcedureActor {
 
         for (&phase_uid, phase) in self.phases.iter() {
             msg.human_addr.do_send(PhasePushed {
-                phase_uid: phase_uid,
+                request_uid,
+                phase_uid,
                 parent_uid: None,
                 components: phase.components.clone(),
             });
@@ -129,10 +130,11 @@ impl actix::Handler<PushPhase> for ProcedureActor {
         let phase = Phase::new(msg.components);
         log::info!("Phase looks like this: {:?}", phase);
         self.phase_uids.push(phase_uid);
-        for (human_uid, human) in self.humans.iter() {
-            log::info!("Informing {} of {}", human_uid, phase_uid);
+        for (&request_uid, human) in self.humans.iter() {
+            log::info!("Informing {} of {}", request_uid, phase_uid);
             human.do_send(PhasePushed {
-                phase_uid: phase_uid,
+                request_uid,
+                phase_uid,
                 parent_uid: None,
                 components: phase.components.clone(),
             });
@@ -148,8 +150,9 @@ impl actix::Handler<PopPhase> for ProcedureActor {
     fn handle(&mut self, msg: PopPhase, _ctx: &mut actix::Context<Self>) -> Self::Result {
         let _phase = self.phases.remove(&msg.phase_uid)
             .ok_or_else(|| KosemError::new("Phase does not exist").with("phase_uid", msg.phase_uid))?;
-        for human in self.humans.values() {
+        for (&request_uid, human) in self.humans.iter() {
             human.do_send(PhasePopped {
+                request_uid,
                 phase_uid: msg.phase_uid,
             });
         }
