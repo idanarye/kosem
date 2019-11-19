@@ -70,8 +70,6 @@ impl Handler<WindowClosed> for GuiActor {
                 self.procedure_screen_channels.remove(&server_idx);
                 // TODO: send disconnect message?
                 if self.procedure_screen_channels.is_empty() {
-                    // log::info!("Last procedure screen closed - reopening join screen");
-                    // self.login_screen_channel.send(MessageToLoginScreen::ShowAgain).unwrap();
                     log::info!("Last procedure screen closed - exiting");
                     System::current().stop();
                 }

@@ -98,7 +98,7 @@ impl WorkOnProcedureWindow {
                 }
             },
             MessageToProcedureScreen::ProcedureFinished(_msg) => {
-                TODO
+                self.window.hide();
             },
         }
     }

@@ -85,12 +85,13 @@ impl Handler<RpcMessage> for GuiClientActor {
         macro_rules! redirect_to_gui {
             (
                 join_screen = {
-                    $($join_screen_msg:ident),
-                    * $(,)?
+                    $($join_screen_msg:ident),* $(,)?
                 }
                 procedure_screen = {
-                    $($procedure_screen_msg:ident),
-                    * $(,)?
+                    $(
+                        $procedure_screen_msg:ident
+                        $( ($procedure_screen_param:ident) $procedure_screen_also_do:block )*
+                    ),* $(,)?
                 }
                 $(
                     $pattern:pat => $expr:expr
@@ -127,6 +128,12 @@ impl Handler<RpcMessage> for GuiClientActor {
                         $(
                             stringify!($procedure_screen_msg) => {
                                 let msg = MessageToProcedureScreen::$procedure_screen_msg($procedure_screen_msg::deserialize(msg.params).unwrap());
+                                $(
+                                    {
+                                        let $procedure_screen_param = &msg;
+                                        $procedure_screen_also_do;
+                                    }
+                                )*
                                 self.gui.do_send(MessageToProcedureScreenWrapper { server_idx, msg });
                         }
                         ),*,
@@ -147,7 +154,9 @@ impl Handler<RpcMessage> for GuiClientActor {
             procedure_screen = {
                 PhasePushed,
                 PhasePopped,
-                ProcedureFinished,
+                ProcedureFinished(_msg) {
+                    self.gui.do_send(MessageToLoginScreen::ShowAgain);
+                },
             }
             "LoginConfirmed" => {
                 let params = LoginConfirmed::deserialize(msg.params).unwrap();
