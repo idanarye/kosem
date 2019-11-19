@@ -50,6 +50,7 @@ impl WorkOnProcedureWindow {
             let gui_actor = gui_actor.clone();
             move |_window, _evt| {
                 gui_actor.do_send(WindowClosed::ProcedureScreen {
+                    by_user: true,
                     server_idx,
                 });
                 Inhibit(false)
@@ -98,7 +99,11 @@ impl WorkOnProcedureWindow {
                 }
             },
             MessageToProcedureScreen::ProcedureFinished(_msg) => {
-                self.window.hide();
+                self.window.destroy();
+                self.gui_actor.do_send(WindowClosed::ProcedureScreen {
+                    by_user: false,
+                    server_idx: self.server_idx,
+                });
             },
         }
     }

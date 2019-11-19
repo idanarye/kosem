@@ -51,6 +51,7 @@ pub struct ProcedureScreenSetChannel {
 pub enum WindowClosed {
     JoinScreen,
     ProcedureScreen {
+        by_user: bool,
         server_idx: usize,
     },
 }

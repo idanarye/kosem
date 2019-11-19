@@ -66,10 +66,10 @@ impl Handler<WindowClosed> for GuiActor {
                     System::current().stop();
                 }
             }
-            WindowClosed::ProcedureScreen { server_idx } => {
+            WindowClosed::ProcedureScreen { server_idx, by_user } => {
                 self.procedure_screen_channels.remove(&server_idx);
                 // TODO: send disconnect message?
-                if self.procedure_screen_channels.is_empty() {
+                if by_user && self.procedure_screen_channels.is_empty() {
                     log::info!("Last procedure screen closed - exiting");
                     System::current().stop();
                 }
