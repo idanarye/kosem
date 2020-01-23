@@ -56,11 +56,11 @@ fn format_deserialization_error(method: Option<String>, error: serde_json::Error
     }
 }
 
-impl actix::StreamHandler<ws::Message, ws::ProtocolError> for WsJrpc {
-    fn handle(&mut self, msg: ws::Message, ctx: &mut Self::Context) {
+impl actix::StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsJrpc {
+    fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
         match msg {
-            ws::Message::Ping(msg) => ctx.pong(&msg),
-            ws::Message::Text(txt) => {
+            Ok(ws::Message::Ping(msg)) => ctx.pong(&msg),
+            Ok(ws::Message::Text(txt)) => {
                 let request: JrpcMessage = match serde_json::from_str(&txt) {
                     Ok(request) => request,
                     Err(error) => {
@@ -110,24 +110,24 @@ impl actix::StreamHandler<ws::Message, ws::ProtocolError> for WsJrpc {
                     }
                 };
                 let future = future.into_actor(self);
-                let future = future.map_err({
-                    let request_id = request_id.clone();
-                    move |error, _, ctx| {
-                        let jrpc_error = JrpcError {
-                            code: -32000,
-                            message: "Server error".to_owned(),
-                            data: Some(serde_json::json!({
-                                "error": error.to_string(),
-                            })),
-                        };
-                        let response = JrpcResponse {
-                            jsonrpc: "2.0".into(),
-                            id: request_id,
-                            payload: Err(jrpc_error),
-                        };
-                        ctx.text(serde_json::to_string(&response).unwrap());
-                    }
-                });
+                // let future = future.map_err({
+                    // let request_id = request_id.clone();
+                    // move |error, _, ctx| {
+                        // let jrpc_error = JrpcError {
+                            // code: -32000,
+                            // message: "Server error".to_owned(),
+                            // data: Some(serde_json::json!({
+                                // "error": error.to_string(),
+                            // })),
+                        // };
+                        // let response = JrpcResponse {
+                            // jsonrpc: "2.0".into(),
+                            // id: request_id,
+                            // payload: Err(jrpc_error),
+                        // };
+                        // ctx.text(serde_json::to_string(&response).unwrap());
+                    // }
+                // });
                 let future = future.map(move |result, _, ctx| {
                     match result {
                         Ok(result) => {
@@ -156,13 +156,14 @@ impl actix::StreamHandler<ws::Message, ws::ProtocolError> for WsJrpc {
                 });
                 ctx.spawn(future);
             },
-            ws::Message::Close(_) => {
+            Ok(ws::Message::Close(_)) => {
                 ctx.close(Some(ws::CloseReason {
                     code: ws::CloseCode::Normal,
                     description: None,
                 }));
             },
-            _ => (),
+            Ok(_) => (),
+            Err(e) => panic!("Protocol error {:?}", e),
         }
     }
 

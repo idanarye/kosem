@@ -5,8 +5,8 @@ use crate::server_config::*;
 use crate::protocol_handlers;
 use crate::role_actors;
 
-pub fn run_server(config: ServerConfig) {
-    let sys = actix::System::new("kosem-server");
+pub async fn run_server(config: ServerConfig) {
+    // let sys = actix::System::new("kosem-server");
     role_actors::PairingActor::default().start();
 
     let server = actix_web::HttpServer::new(move || {
@@ -22,7 +22,7 @@ pub fn run_server(config: ServerConfig) {
     let bind_address = format!("localhost:{}", config.server.port);
     log::info!("Starting server on {}", bind_address);
     let server = server.bind(bind_address).unwrap();
-    server.start();
+    server.run().await.unwrap();
 
-    sys.run().unwrap();
+    // sys.run().unwrap();
 }

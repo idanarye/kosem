@@ -6,6 +6,7 @@ use kosem_webapi::pairing_messages::RequestHuman;
 use crate::role_actors::{ProcedureActor, JoinerActor, HumanActor};
 
 #[derive(Message)]
+#[rtype(result="()")]
 pub struct HumanAvailable {
     pub uid: Uuid,
     pub name: String,
@@ -13,6 +14,7 @@ pub struct HumanAvailable {
 }
 
 #[derive(Clone, Message)]
+#[rtype(result="()")]
 pub struct ProcedureRequestingHuman {
     pub uid: Uuid,
     pub orig_request: RequestHuman,
@@ -20,11 +22,13 @@ pub struct ProcedureRequestingHuman {
 }
 
 #[derive(Message)]
+#[rtype(result="()")]
 pub struct RemoveAvailableHuman {
     pub uid: Uuid,
 }
 
 #[derive(Clone, Message)]
+#[rtype(result="()")]
 pub struct RemoveRequestForHuman {
     pub uid: Uuid,
 }
@@ -44,6 +48,7 @@ pub struct CreateNewHumanActor {
 }
 
 #[derive(Clone, Message)]
+#[rtype(result="()")]
 pub struct PairingPerformed {
     pub human_uid: Uuid,
     pub human_addr: Addr<HumanActor>,
@@ -52,6 +57,7 @@ pub struct PairingPerformed {
 }
 
 #[derive(Message)]
+#[rtype(result="()")]
 pub struct ProcedureTerminated {
     pub procedure_uid: Uuid,
 }

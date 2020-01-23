@@ -4,6 +4,7 @@ use crate::ClientActor;
 use crate::config::ServerConfig;
 
 #[derive(Message)]
+#[rtype(result="()")]
 pub struct RpcMessage {
     pub idx: Option<usize>,
     pub method: String,
@@ -21,6 +22,7 @@ impl RpcMessage {
 }
 
 #[derive(Message)]
+#[rtype(result="()")]
 pub struct ConnectClientActor {
     pub idx: usize,
     pub server_config: ServerConfig,

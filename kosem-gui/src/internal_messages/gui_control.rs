@@ -15,6 +15,7 @@ impl<T> Message for MessageFromServer<T> {
 }
 
 #[derive(Debug, Message)]
+#[rtype(result="()")]
 pub enum MessageToLoginScreen {
     AvailableProcedure(MessageFromServer<pairing_messages::AvailableProcedure>),
     UnavailableProcedure(MessageFromServer<pairing_messages::UnavailableProcedure>),
@@ -30,6 +31,7 @@ pub enum MessageToProcedureScreen {
 }
 
 #[derive(Debug, Message)]
+#[rtype(result="()")]
 pub struct MessageToProcedureScreenWrapper {
     pub server_idx: usize,
     pub request_uid: Uuid,
@@ -37,12 +39,14 @@ pub struct MessageToProcedureScreenWrapper {
 }
 
 #[derive(Debug, Message)]
+#[rtype(result="()")]
 pub struct UserSelectedProcedure {
     pub server_idx: usize,
     pub procedure_uid: Uuid,
 }
 
 #[derive(Message)]
+#[rtype(result="()")]
 pub struct ProcedureScreenSetChannel {
     pub server_idx: usize,
     pub request_uid: Uuid,
@@ -50,6 +54,7 @@ pub struct ProcedureScreenSetChannel {
 }
 
 #[derive(Debug, Message)]
+#[rtype(result="()")]
 pub enum WindowClosed {
     JoinScreen,
     ProcedureScreen {
@@ -59,6 +64,7 @@ pub enum WindowClosed {
 }
 
 #[derive(Message)]
+#[rtype(result="()")]
 pub struct UserClickedButton {
     pub server_idx: usize,
     pub request_uid: Uuid,

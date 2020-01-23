@@ -1,7 +1,7 @@
 use actix::prelude::*;
 use actix::io::{SinkWrite, WriteHandler};
 
-use futures::Future;
+use futures::stream::StreamExt;
 
 use awc::Client;
 use awc::ws;
@@ -37,28 +37,28 @@ pub struct ClientActor {
 impl ClientActor {
     pub fn start_actor(idx: usize, server_config: ServerConfig, routing: ClientRouting) {
         let url = format!("http://{}:{}/ws-jrpc", server_config.url, server_config.port);
-        Arbiter::spawn_fn(move || {
-            Client::new()
+        Arbiter::spawn(async move {
+            let (response, framed) = Client::new()
                 .ws(&url)
                 .connect()
+                .await
                 .map_err(|e| {
                     log::error!("Error: {}", e);
-                }).map(move |(response, framed)| {
-                    log::info!("hello {:?}", response);
-                    let (sink, stream) = framed.split();
-                    let _addr = ClientActor::create(move |ctx| {
-                        ClientActor::add_stream(stream, ctx);
-                        let mut sink_write = SinkWrite::new(sink, ctx);
-                        ClientActor {
-                            idx,
-                            server_config,
-                            write_fn: Box::new(move |msg| {
-                                sink_write.write(msg).map(|_| ())
-                            }),
-                            routing,
-                        }
-                    });
-                })
+                }).unwrap();
+            log::info!("hello {:?}", response);
+            let (sink, stream) = framed.split();
+            let _addr = ClientActor::create(move |ctx| {
+                ClientActor::add_stream(stream, ctx);
+                let mut sink_write = SinkWrite::new(sink, ctx);
+                ClientActor {
+                    idx,
+                    server_config,
+                    write_fn: Box::new(move |msg| {
+                        sink_write.write(msg).map(|_| ())
+                    }),
+                    routing,
+                }
+            });
         })
     }
 }
@@ -75,13 +75,13 @@ impl Actor for ClientActor {
     }
 }
 
-impl StreamHandler<ws::Frame, WsProtocolError> for ClientActor {
-    fn handle(&mut self, msg: ws::Frame, _ctx: &mut Self::Context) {
+impl StreamHandler<Result<ws::Frame, WsProtocolError>> for ClientActor {
+    fn handle(&mut self, msg: Result<ws::Frame, WsProtocolError>, _ctx: &mut Self::Context) {
         match msg {
-            ws::Frame::Ping(msg) => {
+            Ok(ws::Frame::Ping(msg)) => {
                 (self.write_fn)(ws::Message::Pong(msg)).unwrap();
             },
-            ws::Frame::Text(Some(txt)) => {
+            Ok(ws::Frame::Text(txt)) => {
                 let txt = String::from_utf8(Vec::from(txt.as_ref())).unwrap();
                 let request: JrpcMessage = serde_json::from_str(&txt)
                     .map_err(|err| format!("Unable to parse {:?} - {:?}", txt, err))
@@ -92,13 +92,14 @@ impl StreamHandler<ws::Frame, WsProtocolError> for ClientActor {
                     params: request.params,
                 }).unwrap();
             },
-            ws::Frame::Close(_) => {
+            Ok(ws::Frame::Close(_)) => {
                 (self.write_fn)(ws::Message::Close(Some(ws::CloseReason {
                     code: ws::CloseCode::Normal,
                     description: None,
                 }))).unwrap();
             },
-            _ => (),
+            Ok(_) => (),
+            Err(e) => panic!("Protocol error {:?}", e),
         }
     }
 }

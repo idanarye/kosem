@@ -1,6 +1,7 @@
+#![allow(unused_imports)]
 use actix::prelude::*;
 
-use kosem_webapi::{Uuid, KosemError};
+use kosem_webapi::{Uuid, KosemResult};
 use kosem_webapi::pairing_messages::*;
 
 use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
@@ -80,7 +81,7 @@ impl actix::Handler<RemoveRequestForHuman> for JoinerActor {
 }
 
 impl actix::Handler<JoinProcedure> for JoinerActor {
-    type Result = ResponseActFuture<Self, (), KosemError>;
+    type Result = ResponseActFuture<Self, KosemResult<()>>;
 
     fn handle(&mut self, msg: JoinProcedure, _ctx: &mut actix::Context<Self>) -> Self::Result {
         log::info!("Human {} joined procedure {}", self.name, msg.uid);
@@ -91,10 +92,8 @@ impl actix::Handler<JoinProcedure> for JoinerActor {
                 request_uid: msg.uid,
             })
             .into_actor(self)
-            .map_err(|e, _, _| {
-                panic!(e);
-            })
-            .and_then(|result, _actor, _ctx| {
+            .then(|result, _actor, _ctx| {
+                let result = result.unwrap();
                 log::warn!("Join result is {:?}", result);
                 fut::result(result)
             })

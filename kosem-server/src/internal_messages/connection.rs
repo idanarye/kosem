@@ -5,9 +5,11 @@ use kosem_webapi::Uuid;
 use crate::role_actors::{ProcedureActor, JoinerActor, HumanActor};
 
 #[derive(Clone, Message)]
+#[rtype(result="()")]
 pub struct ConnectionClosed;
 
 #[derive(Message)]
+#[rtype(result="()")]
 pub struct RpcMessage {
     pub method: String,
     pub params: serde_value::Value,
@@ -23,12 +25,14 @@ impl RpcMessage {
 }
 
 #[derive(Message)]
+#[rtype(result="()")]
 pub enum SetRole {
     Procedure(actix::Addr<ProcedureActor>),
     Human(actix::Addr<JoinerActor>),
 }
 
 #[derive(Message)]
+#[rtype(result="()")]
 pub struct AddHumanActor {
     pub request_uid: Uuid,
     pub addr: actix::Addr<HumanActor>,

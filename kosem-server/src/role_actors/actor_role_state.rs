@@ -1,7 +1,9 @@
+#![allow(unused_imports, unused_variables, dead_code)]
 use std::collections::HashMap;
 
 use actix::prelude::*;
 use serde::Deserialize;
+use futures::FutureExt;
 
 use kosem_webapi::{Uuid, KosemResult};
 use kosem_webapi::handshake_messages::*;
@@ -72,8 +74,7 @@ impl ActorRoleState {
         method: &str,
         params: Deser,
         _error_classifier: impl FnOnce(&str, Deser::Error),
-    ) -> Result<ResponseFuture<KosemResult<serde_value::Value>, MailboxError>, RoutingError<Deser::Error>> {
-
+    ) -> Result<ResponseFuture<KosemResult<serde_value::Value>>, RoutingError<Deser::Error>> {
         macro_rules! get_actor {
             (NotYetIdentifiedActor, $msg:expr) => {
                 if let Self::NotYetIdentifiedActor(actor) = self {
@@ -116,12 +117,11 @@ impl ActorRoleState {
                                 }
                             })?;
                             if let Some(actor) = get_actor!($role, params) {
-                                Ok(Box::new(actor.send(params)
-                                        .map(|res| {
-                                            res.map(|val| {
-                                                serde_value::to_value(val).unwrap()
-                                            })
-                                        })))
+                                let sent = actor.send(params);
+                                Ok(Box::pin(async {
+                                    let res = sent.await.unwrap()?;
+                                    Ok(serde_value::to_value(res).unwrap())
+                                }))
                             } else {
                                  Err(RoutingError::MethodNotAllowedForRole {
                                     method: method.to_owned(),

@@ -1,8 +1,9 @@
+#![allow(unused_imports, unused_variables)]
 use std::collections::HashMap;
 
 use actix::prelude::*;
 
-use kosem_webapi::{Uuid, KosemError};
+use kosem_webapi::{Uuid, KosemResult, KosemError};
 
 use crate::internal_messages::pairing::*;
 
@@ -67,7 +68,7 @@ impl actix::Handler<RemoveAvailableHuman> for PairingActor {
 }
 
 impl actix::Handler<HumanJoiningProcedure> for PairingActor {
-    type Result = ResponseActFuture<Self, (), KosemError>;
+    type Result = ResponseActFuture<Self, KosemResult<()>>;
 
     fn handle(&mut self, msg: HumanJoiningProcedure, _ctx: &mut Self::Context) -> Self::Result {
         let joiner_entry = self.available_joiners.entry(msg.human_uid);
@@ -99,10 +100,8 @@ impl actix::Handler<HumanJoiningProcedure> for PairingActor {
                 procedure_addr: request.addr.clone(),
             })
             .into_actor(self)
-            .map_err(|e, _, _| {
-                panic!(e);
-            })
-            .and_then(move |human_addr, actor, _ctx| {
+            .then(move |human_addr, actor, _ctx| {
+                let human_addr = human_addr.unwrap();
                 let pairing_performed = PairingPerformed {
                     human_uid: joiner_uid,
                     human_addr,

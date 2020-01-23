@@ -44,6 +44,7 @@ pub struct HumanJoined {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Message)]
+#[rtype(result="()")]
 pub struct ProcedureFinished {
     pub request_uid: Uuid,
 }

@@ -1,3 +1,4 @@
+#![allow(unused_imports, unused_variables)]
 use std::collections::{HashMap, HashSet};
 
 use actix::prelude::*;
@@ -100,8 +101,8 @@ impl actix::Handler<PairingPerformed> for ProcedureActor {
         ctx.spawn(
             msg.human_addr.send(info_sharing::GetInfo::<info_sharing::HumanDetails>::default())
             .into_actor(self)
-            .map_err(|e, _, _| panic!(e))
             .map(move |msg, this, _ctx| {
+                let msg = msg.unwrap();
                 this.con_actor.do_send(RpcMessage::new("HumanJoined", kosem_webapi::pairing_messages::HumanJoined {
                     human_uid,
                     request_uid,

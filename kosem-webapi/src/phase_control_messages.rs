@@ -14,6 +14,7 @@ pub struct PushPhase {
 }
 
 #[derive(Debug, Serialize, Deserialize, Message)]
+#[rtype(result="()")]
 pub struct PhasePushed {
     pub request_uid: Uuid,
     pub phase_uid: Uuid,
@@ -46,6 +47,7 @@ pub struct PopPhase {
 }
 
 #[derive(Debug, Serialize, Deserialize, Message)]
+#[rtype(result="()")]
 pub struct PhasePopped {
     pub request_uid: Uuid,
     pub phase_uid: Uuid,
@@ -60,6 +62,7 @@ pub struct ClickButton {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Message)]
+#[rtype(result="()")]
 pub struct ButtonClicked {
     pub human_uid: Uuid,
     pub phase_uid: Uuid,
