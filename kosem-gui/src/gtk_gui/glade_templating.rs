@@ -59,7 +59,7 @@ impl GladeXmlExtractor {
         package_to_string(&result_package)
     }
 
-    pub fn extract<T: IsA<gtk::Object>>(&mut self, element_id: &'static str) -> GladeFactory<T> {
+    pub fn extract<T: IsA<glib::Object>>(&mut self, element_id: &'static str) -> GladeFactory<T> {
         GladeFactory {
             source: self.extract_as_string(element_id),
             element_id,
@@ -76,13 +76,13 @@ fn package_to_string(package: &sxd_document::Package) -> String {
     output
 }
 
-pub struct GladeFactory<T: IsA<gtk::Object>> {
+pub struct GladeFactory<T: IsA<glib::Object>> {
     source: String,
     element_id: &'static str,
     _phantom: std::marker::PhantomData<T>,
 }
 
-impl<T: IsA<gtk::Object>> GladeFactory<T> {
+impl<T: IsA<glib::Object>> GladeFactory<T> {
     pub fn build(&self) -> GladeTemplatedInstance<T> {
         GladeTemplatedInstance {
             builder: gtk::Builder::new_from_string(&self.source),
@@ -92,19 +92,19 @@ impl<T: IsA<gtk::Object>> GladeFactory<T> {
     }
 }
 
-pub struct GladeTemplatedInstance<T: IsA<gtk::Object>> {
+pub struct GladeTemplatedInstance<T: IsA<glib::Object>> {
     builder: gtk::Builder,
     element_id: &'static str,
     _phantom: std::marker::PhantomData<T>,
 }
 
-impl<T: IsA<gtk::Object>> GladeTemplatedInstance<T> {
-    pub fn modify_child<C: IsA<gtk::Object>>(self, id: &str, dlg: impl FnOnce(C)) -> Self {
+impl<T: IsA<glib::Object>> GladeTemplatedInstance<T> {
+    pub fn modify_child<C: IsA<glib::Object>>(self, id: &str, dlg: impl FnOnce(C)) -> Self {
         dlg(self.builder.get_object(id).unwrap());
         self
     }
 
-    pub fn get_object<S: IsA<gtk::Object>>(&self, object_id: &str) -> S {
+    pub fn get_object<S: IsA<glib::Object>>(&self, object_id: &str) -> S {
         self.builder.get_object(object_id).unwrap()
     }
 
