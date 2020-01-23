@@ -19,13 +19,10 @@ use crate::internal_messages::gui_control::{
 };
 
 pub struct WorkOnProcedureWindow {
-    #[allow(unused)]
     gui_actor: Addr<GuiActor>,
     window: gtk::ApplicationWindow,
-    #[allow(unused)]
     factories: Rc<GladeFactories>,
     server_idx: usize,
-    #[allow(unused)]
     request_uid: Uuid,
     phases_list: gtk::ListBox,
     phases: HashMap<Uuid, Phase>,
@@ -149,9 +146,7 @@ impl WorkOnProcedureWindow {
 }
 
 struct Phase {
-    #[allow(unused)]
     uid: Uuid,
-    #[allow(unused)]
     row: gtk::ListBoxRow,
     components: Vec<Component>,
     components_box: gtk::FlowBox,

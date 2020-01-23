@@ -1,9 +1,7 @@
-#![allow(unused_imports, unused_variables, dead_code)]
 use std::collections::HashMap;
 
 use actix::prelude::*;
 use serde::Deserialize;
-use futures::FutureExt;
 
 use kosem_webapi::{Uuid, KosemResult};
 use kosem_webapi::handshake_messages::*;

@@ -1,4 +1,3 @@
-#![allow(unused_imports, unused_variables)]
 use std::collections::{HashMap, HashSet};
 
 use actix::prelude::*;

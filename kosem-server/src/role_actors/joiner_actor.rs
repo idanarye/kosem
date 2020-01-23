@@ -1,4 +1,3 @@
-#![allow(unused_imports)]
 use actix::prelude::*;
 
 use kosem_webapi::{Uuid, KosemResult};
