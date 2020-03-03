@@ -17,7 +17,7 @@ mod work_on_procedure;
 use glade_factories::GladeFactories;
 
 #[derive(rust_embed::RustEmbed)]
-#[folder = "kosem-gui/assets"]
+#[folder = "assets"]
 struct Asset;
 
 impl Asset {

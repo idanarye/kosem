@@ -8,20 +8,20 @@ repository = "https://github.com/idanarye/kosem"
 
 [dependencies]
 log = "0.4.8"
-flexi_logger = "0.14.5"
+flexi_logger = "0.15.0"
 config = "0.10.1"
 serde = { version = "1.0.104", features = ["derive"] }
-gtk = "0.8.0"
-gio = "0.8.0"
-glib = "0.9.1"
+gtk = "0.8.1"
+gio = "0.8.1"
+glib = "0.9.3"
 actix = "0.9.0"
 awc = "1.0.1"
-futures = "0.3.1"
+futures = "0.3.4"
 actix-codec = "0.2.0"
-typed-builder = "0.5.0"
+typed-builder = "0.5.1"
 
 kosem-webapi = { path = "../kosem-webapi" }
 kosem-base-rpc-client = { path = "../kosem-base-rpc-client" }
 sxd-document = "0.3.2"
 sxd-xpath = "0.4.2"
-rust-embed = "5.2.0"
+rust-embed = "5.5.0"
