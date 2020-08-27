@@ -8,6 +8,7 @@ use crate::actors::client::GuiClientActor;
 use crate::actors::gui::GuiActor;
 
 pub fn start(config: ClientConfig) {
+    /*
     let sys = actix::System::new("kosem-gui");
 
     GuiClientActor::create(|client_ctx| {
@@ -29,4 +30,5 @@ pub fn start(config: ClientConfig) {
     log::info!("Running system");
     sys.run().unwrap();
     log::info!("Closing system");
+    */
 }

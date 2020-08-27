@@ -85,7 +85,7 @@ pub struct GladeFactory<T: IsA<glib::Object>> {
 impl<T: IsA<glib::Object>> GladeFactory<T> {
     pub fn build(&self) -> GladeTemplatedInstance<T> {
         GladeTemplatedInstance {
-            builder: gtk::Builder::new_from_string(&self.source),
+            builder: gtk::Builder::from_string(&self.source),
             element_id: self.element_id,
             _phantom: Default::default(),
         }

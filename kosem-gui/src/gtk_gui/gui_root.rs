@@ -74,3 +74,13 @@ impl GtkGui {
         }
     }
 }
+
+impl Actor for GtkGui {
+    type Context = Context<Self>;
+}
+
+impl StreamHandler<MessageToLoginScreen> for GtkGui {
+    fn handle(&mut self, msg: MessageToLoginScreen, ctx: &mut Self::Context) {
+        self.message_received(msg);
+    }
+}

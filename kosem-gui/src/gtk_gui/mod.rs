@@ -8,22 +8,22 @@ use gio::prelude::*;
 use crate::actors::gui::GuiActor;
 use crate::internal_messages::gui_control::MessageToLoginScreen;
 
-mod gui_root;
-mod glade_templating;
-mod glade_factories;
-mod join_menu;
-mod work_on_procedure;
+// mod gui_root;
+// mod glade_templating;
+// mod glade_factories;
+// mod join_menu;
+// mod work_on_procedure;
 
-use glade_factories::GladeFactories;
+// use glade_factories::GladeFactories;
 
 #[derive(rust_embed::RustEmbed)]
 #[folder = "assets"]
 struct Asset;
 
 impl Asset {
-    pub fn xml_extractor(filename: &str) -> glade_templating::GladeXmlExtractor {
-        glade_templating::GladeXmlExtractor::new(std::str::from_utf8(&Self::get(filename).unwrap()).unwrap())
-    }
+    // pub fn xml_extractor(filename: &str) -> glade_templating::GladeXmlExtractor {
+        // glade_templating::GladeXmlExtractor::new(std::str::from_utf8(&Self::get(filename).unwrap()).unwrap())
+    // }
 
     pub fn css_provider(filename: &str) -> gtk::CssProvider {
         let css_provider = gtk::CssProvider::new();
@@ -33,6 +33,7 @@ impl Asset {
 }
 
 pub fn launch_gtk_app(gui_actor: Addr<GuiActor>, receiver: glib::Receiver<MessageToLoginScreen>) {
+    /*
     let gui_root = Arc::new(RefCell::new(None));
 
     let application = gtk::Application::new(Some("kosem.gtk-gui"), Default::default()).unwrap();
@@ -56,5 +57,6 @@ pub fn launch_gtk_app(gui_actor: Addr<GuiActor>, receiver: glib::Receiver<Messag
 
 
     application.run(&[]);
+    */
     gtk::main();
 }

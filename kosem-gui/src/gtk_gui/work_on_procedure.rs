@@ -96,7 +96,7 @@ impl WorkOnProcedureWindow {
                 }
             },
             MessageToProcedureScreen::ProcedureFinished(_msg) => {
-                self.window.destroy();
+                self.window.close();
                 self.gui_actor.do_send(WindowClosed::ProcedureScreen {
                     by_user: false,
                     server_idx: self.server_idx,
