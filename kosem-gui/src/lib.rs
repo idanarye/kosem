@@ -46,7 +46,7 @@ pub fn start_gtk(settings: client_config::ClientConfig) -> anyhow::Result<()> {
 
     let css_provider = Asset::css_provider("default.css");
 
-    factories.join_menu.app_join_menu_window.create(|ctx, widgets| {
+    factories.join_menu.app_join_menu_window.build().actor(|ctx, widgets| {
         gtk::StyleContext::add_provider_for_screen(
             &widgets.app_join_menu_window.get_screen().unwrap(),
             &css_provider,
@@ -59,7 +59,7 @@ pub fn start_gtk(settings: client_config::ClientConfig) -> anyhow::Result<()> {
             .start();
 
         join_menu::JoinMenuActor::builder()
-            .factories(factories.clone())
+            .factories(factories)
             .widgets(widgets)
             .gui_client(gui_client)
             .build()

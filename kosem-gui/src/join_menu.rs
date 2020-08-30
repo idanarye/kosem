@@ -13,8 +13,8 @@ use crate::internal_messages::gui_control::{
 
 #[derive(woab::Factories)]
 pub struct JoinMenuFactories {
-    pub app_join_menu_window: woab::ActorFactory<JoinMenuActor>,
-    pub row_request: woab::ActorFactory<RequestRowActor>,
+    pub app_join_menu_window: woab::Factory<JoinMenuActor, JoinMenuWidgets, JoinMenuSignal>,
+    pub row_request: woab::Factory<RequestRowActor, RequestRowWidgets, RequestRowSignal>,
 }
 
 #[derive(typed_builder::TypedBuilder)]
@@ -32,11 +32,6 @@ impl Actor for JoinMenuActor {
     fn started(&mut self, _ctx: &mut Self::Context) {
         self.widgets.app_join_menu_window.show_all();
     }
-}
-
-impl woab::WoabActor for JoinMenuActor {
-    type Widgets = JoinMenuWidgets;
-    type Signal = JoinMenuSignal;
 }
 
 #[derive(woab::WidgetsFromBuilder)]
@@ -62,7 +57,7 @@ impl Handler<MessageFromServer<pairing_messages::AvailableProcedure>> for JoinMe
 
     fn handle(&mut self, msg: MessageFromServer<pairing_messages::AvailableProcedure>, _ctx: &mut Self::Context) -> Self::Result {
         let procedure_uid = msg.msg.uid;
-        let new_row = self.factories.join_menu.row_request.create(|ctx, widgets| {
+        let new_row = self.factories.join_menu.row_request.build().actor(|_ctx, widgets| {
             self.widgets.lst_procedures.add(&widgets.row_request);
             RequestRowActor::builder()
                 .factories(self.factories.clone())
@@ -114,11 +109,6 @@ impl Actor for RequestRowActor {
     fn started(&mut self, _ctx: &mut Self::Context) {
         self.widgets.lbl_request_name.set_text(&self.procedure.name);
     }
-}
-
-impl woab::WoabActor for RequestRowActor {
-    type Widgets = RequestRowWidgets;
-    type Signal = RequestRowSignal;
 }
 
 #[derive(woab::WidgetsFromBuilder)]
