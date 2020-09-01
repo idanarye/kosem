@@ -31,6 +31,8 @@ use kosem_webapi::phase_control_messages::{
 use crate::internal_messages::gui_control::{
     MessageFromServer,
     UserSelectedProcedure,
+    ProcedureScreenAttach,
+    UserClickedButton,
 };
 
 #[derive(typed_builder::TypedBuilder)]
@@ -41,6 +43,8 @@ pub struct GuiClientActor {
     config: crate::client_config::ClientConfig,
     #[builder(default)]
     client_actors: HashMap<usize, (ServerConfig, Addr<ClientActor>)>,
+    #[builder(default)]
+    procedure_screens: HashMap<Uuid, Addr<crate::work_on_procedure::WorkOnProcedureActor>>,
 }
 
 impl Actor for GuiClientActor {
@@ -58,7 +62,6 @@ impl Handler<ConnectClientActor> for GuiClientActor {
     type Result = <ConnectClientActor as actix::Message>::Result;
 
     fn handle(&mut self, msg: ConnectClientActor, _ctx: &mut Self::Context) -> Self::Result {
-        log::info!("Connecting a client actor");
         msg.client_actor.do_send(RpcMessage::new("LoginAsHuman", LoginAsHuman {
             name: self.config.display_name.clone(),
         }));
@@ -71,8 +74,7 @@ impl Handler<RpcMessage> for GuiClientActor {
 
     fn handle(&mut self, msg: RpcMessage, _ctx: &mut Self::Context) -> Self::Result {
         let server_idx = msg.idx.expect("Clients should have index");
-        let config = &self.config.servers[server_idx];
-        log::info!("GuiClientActor got {}: {:?} from server {:?}", msg.method, msg.params, config);
+        let _config = &self.config.servers[server_idx];
 
         macro_rules! redirect_to_gui {
             (
@@ -93,7 +95,6 @@ impl Handler<RpcMessage> for GuiClientActor {
                     match msg.method.as_ref() {
                         $(
                             stringify!($join_screen_msg) => {
-                                log::info!("Shell send {} to join screen", stringify!($join_screen_msg));
                                 self.join_menu.do_send(MessageFromServer {
                                     server_idx,
                                     msg: $join_screen_msg::deserialize(msg.params).unwrap(),
@@ -102,19 +103,16 @@ impl Handler<RpcMessage> for GuiClientActor {
                         ),*,
                         $(
                             stringify!($procedure_screen_msg) => {
-                                log::info!("Shell send {} to procedure screen", stringify!($procedure_screen_msg));
-                                // let msg = $procedure_screen_msg::deserialize(msg.params).unwrap();
-                                // $(
-                                    // {
-                                        // let $procedure_screen_param = &msg;
-                                        // $procedure_screen_also_do;
-                                    // }
-                                // )*
-                                // self.gui.do_send(MessageToProcedureScreenWrapper {
-                                    // server_idx,
-                                    // request_uid: msg.request_uid, // all messages to procedure screen must have `request_uid`
-                                    // msg: MessageToProcedureScreen::$procedure_screen_msg(msg),
-                                // });
+                                let msg = $procedure_screen_msg::deserialize(msg.params).unwrap();
+                                $(
+                                    {
+                                        let $procedure_screen_param = &msg;
+                                        $procedure_screen_also_do;
+                                    }
+                                )*
+                                if let Some(procedure_addr) = self.procedure_screens.get(&msg.request_uid) {
+                                    procedure_addr.do_send(msg);
+                                }
                         }
                         ),*,
                         $(
@@ -133,10 +131,10 @@ impl Handler<RpcMessage> for GuiClientActor {
             }
             procedure_screen = {
                 PhasePushed,
-                // PhasePopped,
-                // ProcedureFinished(_msg) {
+                PhasePopped,
+                ProcedureFinished(_msg) {
                     // self.gui.do_send(MessageToLoginScreen::ShowAgain);
-                // },
+                },
             }
             "LoginConfirmed" => {
                 let params = LoginConfirmed::deserialize(msg.params).unwrap();
@@ -154,7 +152,6 @@ impl Handler<UserSelectedProcedure> for GuiClientActor {
     type Result = <UserSelectedProcedure as actix::Message>::Result;
 
     fn handle(&mut self, msg: UserSelectedProcedure, _ctx: &mut Self::Context) -> Self::Result {
-        log::warn!("User selected procedure: {}", msg.procedure_uid);
         self.client_actors.get(&msg.server_idx).map(|(_, client)| {
             client.do_send(RpcMessage::new("JoinProcedure", JoinProcedure {
                 uid: msg.procedure_uid,
@@ -163,12 +160,18 @@ impl Handler<UserSelectedProcedure> for GuiClientActor {
     }
 }
 
-/*
+impl Handler<ProcedureScreenAttach> for GuiClientActor {
+    type Result = ();
+
+    fn handle(&mut self, msg: ProcedureScreenAttach, _ctx: &mut Self::Context) -> Self::Result {
+        self.procedure_screens.insert(msg.request_uid, msg.addr);
+    }
+}
+
 impl Handler<UserClickedButton> for GuiClientActor {
     type Result = <UserClickedButton as actix::Message>::Result;
 
     fn handle(&mut self, msg: UserClickedButton, _ctx: &mut Self::Context) -> Self::Result {
-        log::info!("GuiClientActor UserClickedButton");
         if let Some((_, client)) = self.client_actors.get(&msg.server_idx) {
             client.do_send(RpcMessage::new("ClickButton", ClickButton {
                 request_uid: msg.request_uid,
@@ -178,4 +181,3 @@ impl Handler<UserClickedButton> for GuiClientActor {
         }
     }
 }
-*/

@@ -5,6 +5,7 @@
   <!-- interface-css-provider-path default.css -->
   <object class="GtkApplicationWindow" id="app_join_menu_window">
     <property name="can_focus">False</property>
+    <signal name="destroy" handler="WindowDestroyed" swapped="no"/>
     <child>
       <object class="GtkBox">
         <property name="visible">True</property>

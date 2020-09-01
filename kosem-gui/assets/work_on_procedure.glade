@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.22.1 -->
+<!-- Generated with glade 3.36.0 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
   <!-- interface-css-provider-path default.css -->
-  <object class="GtkApplicationWindow" id="window">
+  <object class="GtkApplicationWindow" id="app_work_on_procedure_window">
     <property name="can_focus">False</property>
-    <child>
-      <placeholder/>
-    </child>
+    <signal name="destroy" handler="WindowDestroyed" swapped="no"/>
     <child>
       <object class="GtkBox">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
         <child>
-          <object class="GtkLabel" id="title">
+          <object class="GtkLabel" id="lbl_title">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="label" translatable="yes">&lt;name of procedure request&gt;</property>
@@ -29,11 +27,11 @@
           </packing>
         </child>
         <child>
-          <object class="GtkListBox" id="phases_list">
+          <object class="GtkListBox" id="lst_phases">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <child>
-              <object class="GtkListBoxRow" id="phase_row">
+              <object class="GtkListBoxRow" id="row_phase">
                 <property name="width_request">100</property>
                 <property name="height_request">80</property>
                 <property name="visible">True</property>
@@ -51,19 +49,19 @@
                       <placeholder/>
                     </child>
                     <child>
-                      <object class="GtkFlowBox" id="components_box">
+                      <object class="GtkFlowBox" id="box_components">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="orientation">vertical</property>
                         <property name="selection_mode">none</property>
                         <child>
-                          <object class="GtkFlowBoxChild" id="component_caption">
+                          <object class="GtkFlowBoxChild" id="cld_caption">
                             <property name="width_request">100</property>
                             <property name="height_request">80</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <child>
-                              <object class="GtkLabel" id="caption_label">
+                              <object class="GtkLabel" id="lbl_caption">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="label" translatable="yes">&lt;caption&gt;</property>
@@ -72,17 +70,18 @@
                           </object>
                         </child>
                         <child>
-                          <object class="GtkFlowBoxChild" id="component_button">
+                          <object class="GtkFlowBoxChild" id="cld_button">
                             <property name="width_request">100</property>
                             <property name="height_request">80</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <child>
-                              <object class="GtkButton" id="button">
+                              <object class="GtkButton" id="btn_button">
                                 <property name="label" translatable="yes">&lt;button&gt;</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
+                                <signal name="clicked" handler="ButtonClicked" swapped="no"/>
                               </object>
                             </child>
                           </object>
@@ -115,6 +114,9 @@
           <placeholder/>
         </child>
       </object>
+    </child>
+    <child type="titlebar">
+      <placeholder/>
     </child>
   </object>
 </interface>

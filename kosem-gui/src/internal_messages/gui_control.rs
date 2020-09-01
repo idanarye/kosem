@@ -1,8 +1,6 @@
 use actix::Message;
 
 use kosem_webapi::Uuid;
-use kosem_webapi::pairing_messages;
-use kosem_webapi::phase_control_messages;
 
 #[derive(Clone, Debug)]
 pub struct MessageFromServer<T> {
@@ -16,30 +14,6 @@ impl<T> Message for MessageFromServer<T> {
 
 #[derive(Debug, Message)]
 #[rtype(result="()")]
-pub enum MessageToLoginScreen {
-    AvailableProcedure(MessageFromServer<pairing_messages::AvailableProcedure>),
-    UnavailableProcedure(MessageFromServer<pairing_messages::UnavailableProcedure>),
-    JoinConfirmation(MessageFromServer<pairing_messages::JoinConfirmation>),
-    ShowAgain,
-}
-
-#[derive(Debug)]
-pub enum MessageToProcedureScreen {
-    PhasePushed(phase_control_messages::PhasePushed),
-    PhasePopped(phase_control_messages::PhasePopped),
-    ProcedureFinished(pairing_messages::ProcedureFinished),
-}
-
-#[derive(Debug, Message)]
-#[rtype(result="()")]
-pub struct MessageToProcedureScreenWrapper {
-    pub server_idx: usize,
-    pub request_uid: Uuid,
-    pub msg: MessageToProcedureScreen,
-}
-
-#[derive(Debug, Message)]
-#[rtype(result="()")]
 pub struct UserSelectedProcedure {
     pub server_idx: usize,
     pub procedure_uid: Uuid,
@@ -47,20 +21,10 @@ pub struct UserSelectedProcedure {
 
 #[derive(Message)]
 #[rtype(result="()")]
-pub struct ProcedureScreenSetChannel {
+pub struct ProcedureScreenAttach {
     pub server_idx: usize,
     pub request_uid: Uuid,
-    pub channel: glib::Sender<MessageToProcedureScreen>,
-}
-
-#[derive(Debug, Message)]
-#[rtype(result="()")]
-pub enum WindowClosed {
-    JoinScreen,
-    ProcedureScreen {
-        by_user: bool,
-        server_idx: usize,
-    },
+    pub addr: actix::Addr<crate::work_on_procedure::WorkOnProcedureActor>,
 }
 
 #[derive(Message)]
@@ -71,3 +35,7 @@ pub struct UserClickedButton {
     pub phase_uid: Uuid,
     pub button_name: Option<String>,
 }
+
+#[derive(Message)]
+#[rtype(result="()")]
+pub struct ShowJoinMenu;

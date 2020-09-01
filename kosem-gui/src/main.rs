@@ -11,8 +11,5 @@ fn main() -> anyhow::Result<()> {
 
     kosem_gui::start_gtk(settings)?;
 
-    // kosem_gui::actors::launcher::start(settings);
-    // kosem_gui::gtk_gui::launch_gtk_app(settings);
-
     Ok(())
 }

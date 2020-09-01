@@ -2,22 +2,17 @@ use gtk::prelude::*;
 use actix::prelude::*;
 
 pub mod client_config;
-// pub mod actors;
 mod internal_messages;
-// pub mod gtk_gui;
 
 mod client;
 mod join_menu;
+mod work_on_procedure;
 
 #[derive(rust_embed::RustEmbed)]
 #[folder = "assets"]
 struct Asset;
 
 impl Asset {
-    // pub fn xml_extractor(filename: &str) -> glade_templating::GladeXmlExtractor {
-        // glade_templating::GladeXmlExtractor::new(std::str::from_utf8(&Self::get(filename).unwrap()).unwrap())
-    // }
-
     pub fn css_provider(filename: &str) -> gtk::CssProvider {
         let css_provider = gtk::CssProvider::new();
         css_provider.load_from_data(Self::get(filename).unwrap().as_ref()).unwrap();
@@ -25,13 +20,9 @@ impl Asset {
     }
 }
 
-#[derive(woab::Factories)]
-pub struct WorkOnProcedureFactories {
-}
-
 pub struct FactoriesInner {
     pub join_menu: join_menu::JoinMenuFactories,
-    pub work_on_procedure: WorkOnProcedureFactories,
+    pub work_on_procedure: work_on_procedure::WorkOnProcedureFactories,
 }
 
 pub type Factories = std::rc::Rc<FactoriesInner>;
@@ -39,7 +30,7 @@ pub type Factories = std::rc::Rc<FactoriesInner>;
 pub fn start_gtk(settings: client_config::ClientConfig) -> anyhow::Result<()> {
     let factories = Factories::new(FactoriesInner {
         join_menu: join_menu::JoinMenuFactories::read(&*Asset::get("join_menu.glade").unwrap())?,
-        work_on_procedure: WorkOnProcedureFactories::read(&*Asset::get("work_on_procedure.glade").unwrap())?,
+        work_on_procedure: work_on_procedure::WorkOnProcedureFactories::read(&*Asset::get("work_on_procedure.glade").unwrap())?,
     });
     gtk::init()?;
     woab::run_actix_inside_gtk_event_loop("kosem.gtk-gui")?;
