@@ -26,6 +26,6 @@ sxd-document = "0.3.2"
 sxd-xpath = "0.4.2"
 rust-embed = "5.6.0"
 
-woab = { path = "../../woab/woab" }
+woab = "0.1.0"
 anyhow = "1.0.32"
 tokio = "0.2.22"
