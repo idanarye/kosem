@@ -13,10 +13,10 @@ use crate::internal_messages::gui_control::{
 
 #[derive(woab::Factories)]
 pub struct WorkOnProcedureFactories {
-    pub app_work_on_procedure_window: woab::Factory<WorkOnProcedureActor, WorkOnProcedureWidgets, WorkOnProcedureSignal>,
-    row_phase: woab::Factory<(), PhaseWidgets, ()>,
-    cld_caption: woab::Factory<(), ComponentCaptionWidgets, ()>,
-    cld_button: woab::Factory<(), ComponentButtonWidgets, ComponentSignal>,
+    pub app_work_on_procedure_window: woab::BuilderFactory,
+    row_phase: woab::BuilderFactory,
+    cld_caption: woab::BuilderFactory,
+    cld_button: woab::BuilderFactory,
 }
 
 #[derive(typed_builder::TypedBuilder)]
@@ -52,18 +52,17 @@ pub struct WorkOnProcedureWidgets {
     lbl_title: gtk::Label,
 }
 
-#[derive(woab::BuilderSignal)]
-pub enum WorkOnProcedureSignal {
-    WindowDestroyed,
-}
+impl actix::Handler<woab::Signal> for WorkOnProcedureActor {
+    type Result = woab::SignalResult;
 
-impl StreamHandler<WorkOnProcedureSignal> for WorkOnProcedureActor {
-    fn handle(&mut self, signal: WorkOnProcedureSignal, _ctx: &mut Self::Context) {
-        match signal {
-            WorkOnProcedureSignal::WindowDestroyed => {
+    fn handle(&mut self, msg: woab::Signal, _ctx: &mut Self::Context) -> Self::Result {
+        Ok(match msg.name() {
+            "WindowDestroyed" => {
                 self.join_menu.do_send(ShowJoinMenu);
+                None
             }
-        }
+            _ => msg.cant_handle()?,
+        })
     }
 }
 
@@ -71,18 +70,18 @@ impl Handler<phase_control_messages::PhasePushed> for WorkOnProcedureActor {
     type Result = ();
 
     fn handle(&mut self, msg: phase_control_messages::PhasePushed, ctx: &mut Self::Context) -> Self::Result {
-        let phase_widgets = self.factories.work_on_procedure.row_phase.build().widgets().unwrap();
+        let phase_widgets: PhaseWidgets = self.factories.work_on_procedure.row_phase.instantiate().widgets().unwrap();
         self.widgets.lst_phases.add(&phase_widgets.row_phase);
         for (i, component) in msg.components.iter().enumerate() {
             match &component.params {
                 phase_control_messages::ComponentParams::Caption { text } => {
-                    let widgets = self.factories.work_on_procedure.cld_caption.build().widgets().unwrap();
+                    let widgets: ComponentCaptionWidgets = self.factories.work_on_procedure.cld_caption.instantiate().widgets().unwrap();
                     widgets.lbl_caption.set_text(&text);
                     phase_widgets.box_components.add(&widgets.cld_caption);
                 }
                 phase_control_messages::ComponentParams::Button { text } => {
-                    let widgets = self.factories.work_on_procedure.cld_button.build()
-                        .connect_tagged_builder_signals(ctx, (msg.phase_uid, i))
+                    let widgets: ComponentButtonWidgets = self.factories.work_on_procedure.cld_button.instantiate()
+                        .connect_to(((msg.phase_uid, i), ctx.address()))
                         .widgets().unwrap();
                     widgets.btn_button.set_label(&text);
                     phase_widgets.box_components.add(&widgets.cld_button);
@@ -141,36 +140,34 @@ struct ComponentButtonWidgets {
     btn_button: gtk::Button,
 }
 
-#[derive(woab::BuilderSignal)]
-enum ComponentSignal {
-    ButtonClicked,
-}
+impl actix::Handler<woab::Signal<(Uuid, usize)>> for WorkOnProcedureActor {
+    type Result = woab::SignalResult;
 
-impl StreamHandler<((Uuid, usize), ComponentSignal)> for WorkOnProcedureActor {
-    fn handle(&mut self, ((phase_uid, component_ordinal), signal): ((Uuid, usize), ComponentSignal), _ctx: &mut Self::Context) {
+    fn handle(&mut self, msg: woab::Signal<(Uuid, usize)>, _ctx: &mut Self::Context) -> Self::Result {
+        let (phase_uid, component_ordinal) = *msg.tag();
         let phase_row = if let Some(p) = self.phases.get(&phase_uid) {
             p
         } else {
             log::warn!("Unknown phase {}", phase_uid);
-            return;
+            return Ok(None);
         };
         let component = if let Some(c) = phase_row.msg.components.get(component_ordinal) {
             c
         } else {
             log::warn!("Phase {} only has {} components - cannot access component {}", phase_uid, phase_row.msg.components.len(), component_ordinal);
-            return;
+            return Ok(None);
         };
-        match signal {
-            ComponentSignal::ButtonClicked => {
+        Ok(match msg.name() {
+            "ButtonClicked" => {
                 self.gui_client.do_send(UserClickedButton {
                     server_idx: self.server_idx,
                     request_uid: self.procedure.uid,
                     phase_uid,
                     button_name: component.name.clone(),
                 });
+                None
             }
-        }
+            _ => msg.cant_handle()?,
+        })
     }
-
-    fn finished(&mut self, _ctx: &mut Self::Context) {}
 }

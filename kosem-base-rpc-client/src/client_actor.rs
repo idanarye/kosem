@@ -30,36 +30,38 @@ macro_rules! wrap_addr_as_routing {
 pub struct ClientActor {
     idx: usize,
     server_config: ServerConfig,
-    write_fn: Box<dyn FnMut(awc::ws::Message) -> Result<(), WsProtocolError>>,
+    write_fn: Box<dyn FnMut(awc::ws::Message) -> Option<()>>,
     routing: ClientRouting,
 }
 
 impl ClientActor {
     pub fn start_actor(idx: usize, server_config: ServerConfig, routing: ClientRouting) {
         let url = format!("http://{}:{}/ws-jrpc", server_config.url, server_config.port);
-        Arbiter::spawn(async move {
-            let (response, framed) = Client::new()
-                .ws(&url)
-                .connect()
-                .await
-                .map_err(|e| {
-                    log::error!("Error: {}", e);
-                }).unwrap();
-            log::info!("hello {:?}", response);
-            let (sink, stream) = framed.split();
-            let _addr = ClientActor::create(move |ctx| {
-                ClientActor::add_stream(stream, ctx);
-                let mut sink_write = SinkWrite::new(sink, ctx);
-                ClientActor {
-                    idx,
-                    server_config,
-                    write_fn: Box::new(move |msg| {
-                        sink_write.write(msg).map(|_| ())
-                    }),
-                    routing,
-                }
+        Arbiter::current().spawn_fn(move || {
+            actix::spawn(async move {
+                let (response, framed) = Client::new()
+                    .ws(&url)
+                    .connect()
+                    .await
+                    .map_err(|e| {
+                        log::error!("Error: {}", e);
+                    }).unwrap();
+                log::info!("hello {:?}", response);
+                let (sink, stream) = framed.split();
+                let _addr = ClientActor::create(move |ctx| {
+                    ClientActor::add_stream(stream, ctx);
+                    let mut sink_write = SinkWrite::new(sink, ctx);
+                    ClientActor {
+                        idx,
+                        server_config,
+                        write_fn: Box::new(move |msg| {
+                            sink_write.write(msg).map(|_| ())
+                        }),
+                        routing,
+                    }
+                });
             });
-        })
+        });
     }
 }
 
@@ -120,6 +122,6 @@ impl Handler<RpcMessage> for ClientActor {
             params: msg.params.into(),
         };
         let response_text = serde_json::to_string(&response).expect("Response must be serializable");
-        (self.write_fn)(ws::Message::Text(response_text)).unwrap();
+        (self.write_fn)(ws::Message::Text(response_text.into())).unwrap();
     }
 }

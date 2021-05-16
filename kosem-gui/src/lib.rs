@@ -33,28 +33,33 @@ pub fn start_gtk(settings: client_config::ClientConfig) -> anyhow::Result<()> {
         work_on_procedure: work_on_procedure::WorkOnProcedureFactories::read(&*Asset::get("work_on_procedure.glade").unwrap())?,
     });
     gtk::init()?;
-    woab::run_actix_inside_gtk_event_loop("kosem.gtk-gui")?;
+    woab::run_actix_inside_gtk_event_loop()?;
 
     let css_provider = Asset::css_provider("default.css");
 
-    factories.join_menu.app_join_menu_window.build().actor(|ctx, widgets| {
-        gtk::StyleContext::add_provider_for_screen(
-            &widgets.app_join_menu_window.get_screen().unwrap(),
-            &css_provider,
-            gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
+    woab::block_on(async move {
+        factories.join_menu.app_join_menu_window.instantiate().connect_with(|bld| {
+            let widgets: crate::join_menu::JoinMenuWidgets = bld.widgets().unwrap();
+            gtk::StyleContext::add_provider_for_screen(
+                &widgets.app_join_menu_window.get_screen().unwrap(),
+                &css_provider,
+                gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
 
-        let gui_client = crate::client::GuiClientActor::builder()
-            .join_menu(ctx.address())
-            .config(settings)
-            .build()
-            .start();
+            join_menu::JoinMenuActor::create(|ctx| {
+                let gui_client = crate::client::GuiClientActor::builder()
+                    .join_menu(ctx.address())
+                    .config(settings)
+                    .build()
+                    .start();
 
-        join_menu::JoinMenuActor::builder()
-            .factories(factories)
-            .widgets(widgets)
-            .gui_client(gui_client)
-            .build()
-    })?;
+                join_menu::JoinMenuActor::builder()
+                    .factories(factories)
+                    .widgets(widgets)
+                    .gui_client(gui_client)
+                    .build()
+            })
+        });
+    });
 
     gtk::main();
     Ok(())

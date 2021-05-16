@@ -78,10 +78,10 @@ impl actix::Handler<HumanJoiningProcedure> for PairingActor {
                 (joiner_entry, request_entry)
             },
             (Entry::Vacant(_), _) => {
-                return Box::new(fut::err(KosemError::new("Human is not available for handling procedures")));
+                return Box::pin(fut::err(KosemError::new("Human is not available for handling procedures")));
             },
             (_, Entry::Vacant(_)) => {
-                return Box::new(fut::err(
+                return Box::pin(fut::err(
                     KosemError::new("Request does not exist in pending requests")
                     .with("request_uid", msg.request_uid)
                 ));
@@ -93,7 +93,7 @@ impl actix::Handler<HumanJoiningProcedure> for PairingActor {
         let joiner_uid = joiner.uid;
         let request = request_entry.remove();
 
-        Box::new(
+        Box::pin(
             joiner_addr.send(CreateNewHumanActor {
                 request_uid: request.uid,
                 procedure_addr: request.addr.clone(),

@@ -7,12 +7,12 @@ license = "MIT/Apache-2.0"
 repository = "https://github.com/idanarye/kosem"
 
 [dependencies]
-log = "0.4.11"
-actix = "0.9.0"
-awc = "1.0.1"
-futures = "0.3.5"
-actix-codec = "0.3.0"
-serde = { version = "1.0.115", features = ["derive"] }
-serde_json = "1.0.57"
+log = "0.4.14"
+actix = "0.11.1"
+awc = "=3.0.0-beta.4"
+futures = "0.3.14"
+actix-codec = "=0.4.0-beta.1"
+serde = { version = "1.0.125", features = ["derive"] }
+serde_json = "1.0.64"
 
 kosem-webapi = { path = "../kosem-webapi" }

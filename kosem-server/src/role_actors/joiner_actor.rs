@@ -85,7 +85,7 @@ impl actix::Handler<JoinProcedure> for JoinerActor {
     fn handle(&mut self, msg: JoinProcedure, _ctx: &mut actix::Context<Self>) -> Self::Result {
         log::info!("Human {} joined procedure {}", self.name, msg.uid);
 
-        Box::new(
+        Box::pin(
             PairingActor::from_registry().send(HumanJoiningProcedure {
                 human_uid: self.uid,
                 request_uid: msg.uid,

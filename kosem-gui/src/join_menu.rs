@@ -16,8 +16,8 @@ use crate::work_on_procedure::WorkOnProcedureActor;
 
 #[derive(woab::Factories)]
 pub struct JoinMenuFactories {
-    pub app_join_menu_window: woab::Factory<JoinMenuActor, JoinMenuWidgets, JoinMenuSignal>,
-    pub row_request: woab::Factory<(), RequestRowWidgets, RequestRowSignal>,
+    pub app_join_menu_window: woab::BuilderFactory,
+    pub row_request: woab::BuilderFactory,
 }
 
 #[derive(typed_builder::TypedBuilder)]
@@ -44,18 +44,17 @@ pub struct JoinMenuWidgets {
     lst_procedures: gtk::ListBox,
 }
 
-#[derive(woab::BuilderSignal)]
-pub enum JoinMenuSignal {
-    WindowDestroyed,
-}
+impl actix::Handler<woab::Signal> for JoinMenuActor {
+    type Result = woab::SignalResult;
 
-impl StreamHandler<JoinMenuSignal> for JoinMenuActor {
-    fn handle(&mut self, signal: JoinMenuSignal, _ctx: &mut Self::Context) {
-        match signal {
-            JoinMenuSignal::WindowDestroyed => {
+    fn handle(&mut self, msg: woab::Signal, _ctx: &mut Self::Context) -> Self::Result {
+        Ok(match msg.name() {
+            "WindowDestroyed" => {
                 gtk::main_quit();
+                None
             }
-        }
+            _ => msg.cant_handle()?,
+        })
     }
 }
 
@@ -72,8 +71,8 @@ impl Handler<MessageFromServer<pairing_messages::AvailableProcedure>> for JoinMe
 
     fn handle(&mut self, msg: MessageFromServer<pairing_messages::AvailableProcedure>, ctx: &mut Self::Context) -> Self::Result {
         let procedure_uid = msg.msg.uid;
-        let new_row_widgets = self.factories.join_menu.row_request.build()
-            .connect_tagged_builder_signals(ctx, procedure_uid)
+        let new_row_widgets: RequestRowWidgets = self.factories.join_menu.row_request.instantiate()
+            .connect_to((procedure_uid, ctx.address()))
             .widgets().unwrap();
         new_row_widgets.lbl_request_name.set_text(&msg.msg.name);
         self.widgets.lst_procedures.add(&new_row_widgets.row_request);
@@ -108,16 +107,17 @@ impl Handler<MessageFromServer<pairing_messages::JoinConfirmation>> for JoinMenu
         self.widgets.lst_procedures.remove(&widgets.row_request);
         self.widgets.app_join_menu_window.hide();
 
-        let _addr = self.factories.work_on_procedure.app_work_on_procedure_window.build().actor(|_, widgets| {
+        let _addr = self.factories.work_on_procedure.app_work_on_procedure_window.instantiate().connect_with(|bld| {
             WorkOnProcedureActor::builder()
                 .factories(self.factories.clone())
-                .widgets(widgets)
+                .widgets(bld.widgets().unwrap())
                 .join_menu(ctx.address())
                 .gui_client(self.gui_client.clone())
                 .server_idx(server_idx)
                 .procedure(procedure)
                 .build()
-        }).unwrap();
+                .start()
+        });
     }
 }
 
@@ -133,24 +133,22 @@ pub struct RequestRowWidgets {
     lbl_request_name: gtk::Label,
 }
 
-#[derive(woab::BuilderSignal)]
-pub enum RequestRowSignal {
-    ConnectToProcedure,
-}
+impl actix::Handler<woab::Signal<Uuid>> for JoinMenuActor {
+    type Result = woab::SignalResult;
 
-impl StreamHandler<(Uuid, RequestRowSignal)> for JoinMenuActor {
-    fn handle(&mut self, (uuid, signal): (Uuid, RequestRowSignal), _ctx: &mut Self::Context) {
-        match signal {
-            RequestRowSignal::ConnectToProcedure => {
+    fn handle(&mut self, msg: woab::Signal<Uuid>, _ctx: &mut Self::Context) -> Self::Result {
+        let uuid = msg.tag();
+        Ok(match msg.name() {
+            "ConnectToProcedure" => {
                 if let Some(row) = self.procedure_requests.get(&uuid) {
                     self.gui_client.do_send(UserSelectedProcedure {
                         server_idx: row.server_idx,
                         procedure_uid: row.procedure.uid,
                     });
                 }
+                None
             }
-        }
+            _ => msg.cant_handle()?,
+        })
     }
-
-    fn finished(&mut self, _: &mut Self::Context) {}
 }
