@@ -30,7 +30,7 @@ macro_rules! wrap_addr_as_routing {
 pub struct ClientActor {
     idx: usize,
     server_config: ServerConfig,
-    write_fn: Box<dyn FnMut(awc::ws::Message) -> Option<()>>,
+    write_fn: Box<dyn FnMut(awc::ws::Message) -> std::io::Result<()>>,
     routing: ClientRouting,
 }
 
@@ -55,7 +55,10 @@ impl ClientActor {
                         idx,
                         server_config,
                         write_fn: Box::new(move |msg| {
-                            sink_write.write(msg).map(|_| ())
+                            match sink_write.write(msg) {
+                                Some(_) => Err(std::io::Error::new(std::io::ErrorKind::BrokenPipe, "websocket sink is closed")),
+                                None => Ok(())
+                            }
                         }),
                         routing,
                     }
