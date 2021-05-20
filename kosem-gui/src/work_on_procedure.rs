@@ -57,7 +57,7 @@ impl actix::Handler<woab::Signal> for WorkOnProcedureActor {
 
     fn handle(&mut self, msg: woab::Signal, _ctx: &mut Self::Context) -> Self::Result {
         Ok(match msg.name() {
-            "WindowDestroyed" => {
+            "close" => {
                 self.join_menu.do_send(ShowJoinMenu);
                 None
             }
@@ -158,7 +158,7 @@ impl actix::Handler<woab::Signal<(Uuid, usize)>> for WorkOnProcedureActor {
             return Ok(None);
         };
         Ok(match msg.name() {
-            "ButtonClicked" => {
+            "button_clicked" => {
                 self.gui_client.do_send(UserClickedButton {
                     server_idx: self.server_idx,
                     request_uid: self.procedure.uid,

@@ -73,7 +73,7 @@ impl actix::StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsJrpc {
                         return;
                     }
                 };
-                log::warn!("got {:?}", request);
+                log::info!("got {:?}", request);
                 let request_id = request.id.clone();
                 let future = self.state.send_request_from_connection(&request.method, request.params, |_method, _error| {
                 });

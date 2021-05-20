@@ -49,7 +49,7 @@ impl actix::Handler<woab::Signal> for JoinMenuActor {
 
     fn handle(&mut self, msg: woab::Signal, _ctx: &mut Self::Context) -> Self::Result {
         Ok(match msg.name() {
-            "WindowDestroyed" => {
+            "close" => {
                 gtk::main_quit();
                 None
             }
@@ -139,7 +139,7 @@ impl actix::Handler<woab::Signal<Uuid>> for JoinMenuActor {
     fn handle(&mut self, msg: woab::Signal<Uuid>, _ctx: &mut Self::Context) -> Self::Result {
         let uuid = msg.tag();
         Ok(match msg.name() {
-            "ConnectToProcedure" => {
+            "connect_to_procedure" => {
                 if let Some(row) = self.procedure_requests.get(&uuid) {
                     self.gui_client.do_send(UserSelectedProcedure {
                         server_idx: row.server_idx,
