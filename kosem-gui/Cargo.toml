@@ -7,25 +7,25 @@ license = "MIT/Apache-2.0"
 repository = "https://github.com/idanarye/kosem"
 
 [dependencies]
-log = "0.4.14"
-flexi_logger = "0.17.1"
-config = "0.11.0"
-serde = { version = "1.0.125", features = ["derive"] }
-gtk = "0.9.2"
-gio = "0.9.1"
-glib = "0.10.3"
-actix = "0.11.1"
-awc = "=3.0.0-beta.4"
-futures = "0.3.14"
-actix-codec = "0.3.0"
-typed-builder = "0.9.0"
+log = "0.4.17"
+flexi_logger = "0.23.1"
+config = "0.13.2"
+serde = { version = "1.0.144", features = ["derive"] }
+gtk = "0.15.5"
+gio = "0.15.12"
+glib = "0.15.12"
+actix = "0.13.0"
+awc = "3.0.1"
+futures = "0.3.24"
+actix-codec = "0.5.0"
+typed-builder = "0.10.0"
 
 kosem-webapi = { path = "../kosem-webapi" }
 kosem-base-rpc-client = { path = "../kosem-base-rpc-client" }
 sxd-document = "0.3.2"
 sxd-xpath = "0.4.2"
-rust-embed = "5.9.0"
+rust-embed = "6.4.0"
 
-woab = "0.4.0"
-anyhow = "1.0.40"
-tokio = "1.5.0"
+woab = "0.7.0"
+anyhow = "1.0.64"
+tokio = "1.21.0"

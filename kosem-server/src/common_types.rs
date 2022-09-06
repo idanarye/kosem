@@ -16,6 +16,9 @@ impl Phase {
                 components_names.insert(name.to_owned(), index);
             }
         }
-        Self { components, components_names }
+        Self {
+            components,
+            components_names,
+        }
     }
 }

@@ -1,11 +1,11 @@
 use actix::prelude::*;
 
-use kosem_webapi::Uuid;
 use kosem_webapi::handshake_messages::*;
+use kosem_webapi::Uuid;
 
+use crate::internal_messages::connection::{ConnectionClosed, SetRole};
 use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
-use crate::role_actors::{ProcedureActor, JoinerActor};
-use crate::internal_messages::connection::{SetRole, ConnectionClosed};
+use crate::role_actors::{JoinerActor, ProcedureActor};
 
 pub struct NotYetIdentifiedActor {
     con_actor: actix::Addr<WsJrpc>,
@@ -35,7 +35,11 @@ impl actix::Handler<LoginAsProcedure> for NotYetIdentifiedActor {
     fn handle(&mut self, msg: LoginAsProcedure, ctx: &mut actix::Context<Self>) -> Self::Result {
         log::info!("LoginAsProcedure: {:?}", msg);
         let procedure_uid = Uuid::new_v4();
-        let actor = ProcedureActor::builder().uid(procedure_uid).con_actor(self.con_actor.clone()).name(msg.name).build();
+        let actor = ProcedureActor::builder()
+            .uid(procedure_uid)
+            .con_actor(self.con_actor.clone())
+            .name(msg.name)
+            .build();
         let actor = actor.start();
         self.con_actor.do_send(SetRole::Procedure(actor));
         ctx.stop();
@@ -49,7 +53,11 @@ impl actix::Handler<LoginAsHuman> for NotYetIdentifiedActor {
     fn handle(&mut self, msg: LoginAsHuman, ctx: &mut actix::Context<Self>) -> Self::Result {
         log::info!("LoginAsHuman: {:?}", msg);
         let human_uid = Uuid::new_v4();
-        let actor = JoinerActor::builder().uid(human_uid).con_actor(self.con_actor.clone()).name(msg.name).build();
+        let actor = JoinerActor::builder()
+            .uid(human_uid)
+            .con_actor(self.con_actor.clone())
+            .name(msg.name)
+            .build();
         let actor = actor.start();
         self.con_actor.do_send(SetRole::Human(actor));
         ctx.stop();

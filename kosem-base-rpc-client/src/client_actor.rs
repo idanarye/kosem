@@ -1,16 +1,16 @@
-use actix::prelude::*;
 use actix::io::{SinkWrite, WriteHandler};
+use actix::prelude::*;
 
 use futures::stream::StreamExt;
 
-use awc::Client;
-use awc::ws;
 use awc::error::WsProtocolError;
+use awc::ws;
+use awc::Client;
 
 use kosem_webapi::protocols::JrpcMessage;
 
-use crate::control_messages::*;
 use crate::config::ServerConfig;
+use crate::control_messages::*;
 
 pub struct ClientRouting {
     pub connect_client_actor: Recipient<ConnectClientActor>,
@@ -24,7 +24,7 @@ macro_rules! wrap_addr_as_routing {
             connect_client_actor: $addr.clone().recipient(),
             rpc_message: $addr.clone().recipient(),
         }
-    }
+    };
 }
 
 pub struct ClientActor {
@@ -36,7 +36,10 @@ pub struct ClientActor {
 
 impl ClientActor {
     pub fn start_actor(idx: usize, server_config: ServerConfig, routing: ClientRouting) {
-        let url = format!("http://{}:{}/ws-jrpc", server_config.url, server_config.port);
+        let url = format!(
+            "http://{}:{}/ws-jrpc",
+            server_config.url, server_config.port
+        );
         Arbiter::current().spawn_fn(move || {
             actix::spawn(async move {
                 let (response, framed) = Client::new()
@@ -45,7 +48,8 @@ impl ClientActor {
                     .await
                     .map_err(|e| {
                         log::error!("Error: {}", e);
-                    }).unwrap();
+                    })
+                    .unwrap();
                 log::info!("hello {:?}", response);
                 let (sink, stream) = framed.split();
                 let _addr = ClientActor::create(move |ctx| {
@@ -55,10 +59,12 @@ impl ClientActor {
                         idx,
                         server_config,
                         write_fn: Box::new(move |msg| {
-                            match sink_write.write(msg) {
-                                Some(_) => Err(std::io::Error::new(std::io::ErrorKind::BrokenPipe, "websocket sink is closed")),
-                                None => Ok(())
-                            }
+                            sink_write.write(msg).map_err(|_| {
+                                std::io::Error::new(
+                                    std::io::ErrorKind::BrokenPipe,
+                                    "websocket sink is closed",
+                                )
+                            })
                         }),
                         routing,
                     }
@@ -72,11 +78,13 @@ impl Actor for ClientActor {
     type Context = Context<Self>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
-        self.routing.connect_client_actor.do_send(ConnectClientActor {
-            idx: self.idx,
-            server_config: self.server_config.clone(),
-            client_actor: ctx.address(),
-        }).expect("routing should be present when the GUI is created");
+        self.routing
+            .connect_client_actor
+            .do_send(ConnectClientActor {
+                idx: self.idx,
+                server_config: self.server_config.clone(),
+                client_actor: ctx.address(),
+            });
     }
 }
 
@@ -85,7 +93,7 @@ impl StreamHandler<Result<ws::Frame, WsProtocolError>> for ClientActor {
         match msg {
             Ok(ws::Frame::Ping(msg)) => {
                 (self.write_fn)(ws::Message::Pong(msg)).unwrap();
-            },
+            }
             Ok(ws::Frame::Text(txt)) => {
                 let txt = String::from_utf8(Vec::from(txt.as_ref())).unwrap();
                 let request: JrpcMessage = serde_json::from_str(&txt)
@@ -95,22 +103,22 @@ impl StreamHandler<Result<ws::Frame, WsProtocolError>> for ClientActor {
                     idx: Some(self.idx),
                     method: request.method,
                     params: request.params,
-                }).unwrap();
-            },
+                });
+            }
             Ok(ws::Frame::Close(_)) => {
                 (self.write_fn)(ws::Message::Close(Some(ws::CloseReason {
                     code: ws::CloseCode::Normal,
                     description: None,
-                }))).unwrap();
-            },
+                })))
+                .unwrap();
+            }
             Ok(_) => (),
             Err(e) => panic!("Protocol error {:?}", e),
         }
     }
 }
 
-impl WriteHandler<WsProtocolError> for ClientActor {
-}
+impl WriteHandler<WsProtocolError> for ClientActor {}
 
 // Message Handling
 
@@ -122,9 +130,10 @@ impl Handler<RpcMessage> for ClientActor {
             jsonrpc: "2.0".into(),
             method: msg.method,
             id: None,
-            params: msg.params.into(),
+            params: msg.params,
         };
-        let response_text = serde_json::to_string(&response).expect("Response must be serializable");
+        let response_text =
+            serde_json::to_string(&response).expect("Response must be serializable");
         (self.write_fn)(ws::Message::Text(response_text.into())).unwrap();
     }
 }

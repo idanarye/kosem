@@ -1,10 +1,10 @@
 use actix::prelude::*;
 
-use crate::ClientActor;
 use crate::config::ServerConfig;
+use crate::ClientActor;
 
 #[derive(Message)]
-#[rtype(result="()")]
+#[rtype(result = "()")]
 pub struct RpcMessage {
     pub idx: Option<usize>,
     pub method: String,
@@ -16,13 +16,14 @@ impl RpcMessage {
         RpcMessage {
             idx: None,
             method: method.into(),
-            params: serde_json::to_value(params).expect("Generated RpcMessage must be serializable"),
+            params: serde_json::to_value(params)
+                .expect("Generated RpcMessage must be serializable"),
         }
     }
 }
 
 #[derive(Message)]
-#[rtype(result="()")]
+#[rtype(result = "()")]
 pub struct ConnectClientActor {
     pub idx: usize,
     pub server_config: ServerConfig,

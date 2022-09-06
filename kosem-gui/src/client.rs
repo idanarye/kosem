@@ -1,38 +1,21 @@
 use std::collections::HashMap;
 
-use serde::Deserialize;
 use actix::prelude::*;
+use serde::Deserialize;
 
-use kosem_base_rpc_client::{ClientActor, wrap_addr_as_routing};
-use kosem_base_rpc_client::control_messages::{
-    RpcMessage,
-    ConnectClientActor,
-};
 use kosem_base_rpc_client::config::ServerConfig;
+use kosem_base_rpc_client::control_messages::{ConnectClientActor, RpcMessage};
+use kosem_base_rpc_client::{wrap_addr_as_routing, ClientActor};
 
-use kosem_webapi::Uuid;
-use kosem_webapi::handshake_messages::{
-    LoginAsHuman,
-    LoginConfirmed,
-};
+use kosem_webapi::handshake_messages::{LoginAsHuman, LoginConfirmed};
 use kosem_webapi::pairing_messages::{
-    AvailableProcedure,
-    UnavailableProcedure,
-    JoinProcedure,
-    JoinConfirmation,
-    ProcedureFinished,
+    AvailableProcedure, JoinConfirmation, JoinProcedure, ProcedureFinished, UnavailableProcedure,
 };
-use kosem_webapi::phase_control_messages::{
-    PhasePushed,
-    PhasePopped,
-    ClickButton,
-};
+use kosem_webapi::phase_control_messages::{ClickButton, PhasePopped, PhasePushed};
+use kosem_webapi::Uuid;
 
 use crate::internal_messages::gui_control::{
-    MessageFromServer,
-    UserSelectedProcedure,
-    ProcedureScreenAttach,
-    UserClickedButton,
+    MessageFromServer, ProcedureScreenAttach, UserClickedButton, UserSelectedProcedure,
 };
 
 #[derive(typed_builder::TypedBuilder)]
@@ -62,10 +45,14 @@ impl Handler<ConnectClientActor> for GuiClientActor {
     type Result = <ConnectClientActor as actix::Message>::Result;
 
     fn handle(&mut self, msg: ConnectClientActor, _ctx: &mut Self::Context) -> Self::Result {
-        msg.client_actor.do_send(RpcMessage::new("LoginAsHuman", LoginAsHuman {
-            name: self.config.display_name.clone(),
-        }));
-        self.client_actors.insert(msg.idx, (msg.server_config, msg.client_actor));
+        msg.client_actor.do_send(RpcMessage::new(
+            "LoginAsHuman",
+            LoginAsHuman {
+                name: self.config.display_name.clone(),
+            },
+        ));
+        self.client_actors
+            .insert(msg.idx, (msg.server_config, msg.client_actor));
     }
 }
 
@@ -152,11 +139,14 @@ impl Handler<UserSelectedProcedure> for GuiClientActor {
     type Result = <UserSelectedProcedure as actix::Message>::Result;
 
     fn handle(&mut self, msg: UserSelectedProcedure, _ctx: &mut Self::Context) -> Self::Result {
-        self.client_actors.get(&msg.server_idx).map(|(_, client)| {
-            client.do_send(RpcMessage::new("JoinProcedure", JoinProcedure {
-                uid: msg.procedure_uid,
-            }));
-        });
+        if let Some((_, client)) = self.client_actors.get(&msg.server_idx) {
+            client.do_send(RpcMessage::new(
+                "JoinProcedure",
+                JoinProcedure {
+                    uid: msg.procedure_uid,
+                },
+            ));
+        }
     }
 }
 
@@ -173,11 +163,14 @@ impl Handler<UserClickedButton> for GuiClientActor {
 
     fn handle(&mut self, msg: UserClickedButton, _ctx: &mut Self::Context) -> Self::Result {
         if let Some((_, client)) = self.client_actors.get(&msg.server_idx) {
-            client.do_send(RpcMessage::new("ClickButton", ClickButton {
-                request_uid: msg.request_uid,
-                phase_uid: msg.phase_uid,
-                button_name: msg.button_name,
-            }));
+            client.do_send(RpcMessage::new(
+                "ClickButton",
+                ClickButton {
+                    request_uid: msg.request_uid,
+                    phase_uid: msg.phase_uid,
+                    button_name: msg.button_name,
+                },
+            ));
         }
     }
 }

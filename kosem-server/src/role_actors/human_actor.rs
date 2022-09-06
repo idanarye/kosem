@@ -4,9 +4,9 @@ use kosem_webapi::Uuid;
 
 use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
 
-use crate::internal_messages::connection::{RpcMessage, ConnectionClosed, AddHumanActor};
-use crate::internal_messages::pairing::{PairingPerformed, ProcedureTerminated};
+use crate::internal_messages::connection::{AddHumanActor, ConnectionClosed, RpcMessage};
 use crate::internal_messages::info_sharing;
+use crate::internal_messages::pairing::{PairingPerformed, ProcedureTerminated};
 use kosem_webapi::phase_control_messages::*;
 
 use crate::role_actors::ProcedureActor;
@@ -44,31 +44,49 @@ impl actix::Handler<PairingPerformed> for HumanActor {
     type Result = <PairingPerformed as actix::Message>::Result;
 
     fn handle(&mut self, msg: PairingPerformed, ctx: &mut actix::Context<Self>) -> Self::Result {
-        log::info!("Paired human {} to request {}", msg.human_uid, msg.request_uid);
+        log::info!(
+            "Paired human {} to request {}",
+            msg.human_uid,
+            msg.request_uid
+        );
         self.con_actor.do_send(AddHumanActor {
             request_uid: msg.request_uid,
-            addr: ctx.address()
+            addr: ctx.address(),
         });
-        self.con_actor.do_send(RpcMessage::new("JoinConfirmation", kosem_webapi::pairing_messages::JoinConfirmation {
-            request_uid: msg.request_uid,
-        }));
+        self.con_actor.do_send(RpcMessage::new(
+            "JoinConfirmation",
+            kosem_webapi::pairing_messages::JoinConfirmation {
+                request_uid: msg.request_uid,
+            },
+        ));
     }
 }
 
 impl actix::Handler<ProcedureTerminated> for HumanActor {
     type Result = <ProcedureTerminated as actix::Message>::Result;
 
-    fn handle(&mut self, _msg: ProcedureTerminated, _ctx: &mut actix::Context<Self>) -> Self::Result {
-        self.con_actor.do_send(RpcMessage::new("ProcedureFinished", kosem_webapi::pairing_messages::ProcedureFinished {
-            request_uid: self.request_uid,
-        }));
+    fn handle(
+        &mut self,
+        _msg: ProcedureTerminated,
+        _ctx: &mut actix::Context<Self>,
+    ) -> Self::Result {
+        self.con_actor.do_send(RpcMessage::new(
+            "ProcedureFinished",
+            kosem_webapi::pairing_messages::ProcedureFinished {
+                request_uid: self.request_uid,
+            },
+        ));
     }
 }
 
 impl actix::Handler<info_sharing::GetInfo<info_sharing::HumanDetails>> for HumanActor {
     type Result = <info_sharing::GetInfo<info_sharing::HumanDetails> as actix::Message>::Result;
 
-    fn handle(&mut self, _msg: info_sharing::GetInfo<info_sharing::HumanDetails>, _ctx: &mut actix::Context<Self>) -> Self::Result {
+    fn handle(
+        &mut self,
+        _msg: info_sharing::GetInfo<info_sharing::HumanDetails>,
+        _ctx: &mut actix::Context<Self>,
+    ) -> Self::Result {
         info_sharing::HumanDetails {
             name: self.name.clone(),
         }

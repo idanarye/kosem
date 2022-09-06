@@ -6,7 +6,7 @@ use actix::Message;
 use crate::KosemResult;
 
 #[derive(Debug, Serialize, Deserialize, Message)]
-#[rtype(result="KosemResult<Uuid>")]
+#[rtype(result = "KosemResult<Uuid>")]
 pub struct PushPhase {
     #[serde(default)]
     pub limit_to_human_uids: Vec<Uuid>,
@@ -14,7 +14,7 @@ pub struct PushPhase {
 }
 
 #[derive(Debug, Serialize, Deserialize, Message)]
-#[rtype(result="()")]
+#[rtype(result = "()")]
 pub struct PhasePushed {
     pub request_uid: Uuid,
     pub phase_uid: Uuid,
@@ -32,29 +32,25 @@ pub struct Component {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "params")]
 pub enum ComponentParams {
-    Caption {
-        text: String,
-    },
-    Button {
-        text: String,
-    },
+    Caption { text: String },
+    Button { text: String },
 }
 
 #[derive(Debug, Serialize, Deserialize, Message)]
-#[rtype(result="KosemResult<()>")]
+#[rtype(result = "KosemResult<()>")]
 pub struct PopPhase {
     pub phase_uid: Uuid,
 }
 
 #[derive(Debug, Serialize, Deserialize, Message)]
-#[rtype(result="()")]
+#[rtype(result = "()")]
 pub struct PhasePopped {
     pub request_uid: Uuid,
     pub phase_uid: Uuid,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Message)]
-#[rtype(result="KosemResult<()>")]
+#[rtype(result = "KosemResult<()>")]
 pub struct ClickButton {
     pub request_uid: Uuid,
     pub phase_uid: Uuid,
@@ -62,7 +58,7 @@ pub struct ClickButton {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Message)]
-#[rtype(result="()")]
+#[rtype(result = "()")]
 pub struct ButtonClicked {
     pub human_uid: Uuid,
     pub phase_uid: Uuid,

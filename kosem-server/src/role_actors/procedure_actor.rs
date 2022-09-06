@@ -2,23 +2,20 @@ use std::collections::{HashMap, HashSet};
 
 use actix::prelude::*;
 
-use kosem_webapi::{Uuid, KosemError};
 use kosem_webapi::pairing_messages::*;
 use kosem_webapi::phase_control_messages::*;
+use kosem_webapi::{KosemError, Uuid};
 
 use crate::common_types::Phase;
 
 use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
 
-use crate::role_actors::{PairingActor, HumanActor};
-use crate::internal_messages::connection::{RpcMessage, ConnectionClosed};
-use crate::internal_messages::pairing::{
-    RemoveRequestForHuman,
-    ProcedureRequestingHuman,
-    PairingPerformed,
-    ProcedureTerminated,
-};
+use crate::internal_messages::connection::{ConnectionClosed, RpcMessage};
 use crate::internal_messages::info_sharing;
+use crate::internal_messages::pairing::{
+    PairingPerformed, ProcedureRequestingHuman, ProcedureTerminated, RemoveRequestForHuman,
+};
+use crate::role_actors::{HumanActor, PairingActor};
 
 #[derive(typed_builder::TypedBuilder)]
 pub struct ProcedureActor {
@@ -28,7 +25,7 @@ pub struct ProcedureActor {
     #[builder(default)]
     pending_requests_for_humans: HashSet<Uuid>,
     #[builder(default)]
-    humans: HashMap<Uuid, Addr<HumanActor>>,  // NOTE: the key is the request UID, not the human UID
+    humans: HashMap<Uuid, Addr<HumanActor>>, // NOTE: the key is the request UID, not the human UID
     #[builder(default)]
     phase_uids: Vec<Uuid>,
     #[builder(default)]
@@ -73,7 +70,7 @@ impl actix::Handler<RequestHuman> for ProcedureActor {
         let uid = Uuid::new_v4();
         self.pending_requests_for_humans.insert(uid);
         PairingActor::from_registry().do_send(ProcedureRequestingHuman {
-            uid: uid,
+            uid,
             orig_request: msg,
             addr: ctx.address(),
         });
@@ -85,29 +82,45 @@ impl actix::Handler<PairingPerformed> for ProcedureActor {
     type Result = <PairingPerformed as actix::Message>::Result;
 
     fn handle(&mut self, msg: PairingPerformed, ctx: &mut actix::Context<Self>) -> Self::Result {
-        log::info!("Paired request {} to human {}", msg.request_uid, msg.human_uid);
+        log::info!(
+            "Paired request {} to human {}",
+            msg.request_uid,
+            msg.human_uid
+        );
         self.pending_requests_for_humans.remove(&msg.request_uid);
         if self.pending_requests_for_humans.is_empty() {
             log::info!("Procedure {} got all the humans it needs!", self.name);
         } else {
-            log::info!("Procedure {} still needs {} more humans...", self.name, self.pending_requests_for_humans.len());
+            log::info!(
+                "Procedure {} still needs {} more humans...",
+                self.name,
+                self.pending_requests_for_humans.len()
+            );
         }
 
         self.humans.insert(msg.request_uid, msg.human_addr.clone());
 
-        let PairingPerformed { human_uid, request_uid, .. } = msg;
+        let PairingPerformed {
+            human_uid,
+            request_uid,
+            ..
+        } = msg;
 
         ctx.spawn(
-            msg.human_addr.send(info_sharing::GetInfo::<info_sharing::HumanDetails>::default())
-            .into_actor(self)
-            .map(move |msg, this, _ctx| {
-                let msg = msg.unwrap();
-                this.con_actor.do_send(RpcMessage::new("HumanJoined", kosem_webapi::pairing_messages::HumanJoined {
-                    human_uid,
-                    request_uid,
-                    human_name: msg.name,
-                }));
-            })
+            msg.human_addr
+                .send(info_sharing::GetInfo::<info_sharing::HumanDetails>::default())
+                .into_actor(self)
+                .map(move |msg, this, _ctx| {
+                    let msg = msg.unwrap();
+                    this.con_actor.do_send(RpcMessage::new(
+                        "HumanJoined",
+                        kosem_webapi::pairing_messages::HumanJoined {
+                            human_uid,
+                            request_uid,
+                            human_name: msg.name,
+                        },
+                    ));
+                }),
         );
 
         for (&phase_uid, phase) in self.phases.iter() {
@@ -148,8 +161,9 @@ impl actix::Handler<PopPhase> for ProcedureActor {
     type Result = <PopPhase as actix::Message>::Result;
 
     fn handle(&mut self, msg: PopPhase, _ctx: &mut actix::Context<Self>) -> Self::Result {
-        let _phase = self.phases.remove(&msg.phase_uid)
-            .ok_or_else(|| KosemError::new("Phase does not exist").with("phase_uid", msg.phase_uid))?;
+        let _phase = self.phases.remove(&msg.phase_uid).ok_or_else(|| {
+            KosemError::new("Phase does not exist").with("phase_uid", msg.phase_uid)
+        })?;
         for (&request_uid, human) in self.humans.iter() {
             human.do_send(PhasePopped {
                 request_uid,
@@ -164,6 +178,7 @@ impl actix::Handler<ButtonClicked> for ProcedureActor {
     type Result = <ButtonClicked as actix::Message>::Result;
 
     fn handle(&mut self, msg: ButtonClicked, _ctx: &mut actix::Context<Self>) -> Self::Result {
-        self.con_actor.do_send(RpcMessage::new("ButtonClicked", msg));
+        self.con_actor
+            .do_send(RpcMessage::new("ButtonClicked", msg));
     }
 }

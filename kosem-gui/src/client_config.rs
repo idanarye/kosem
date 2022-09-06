@@ -1,4 +1,4 @@
-use serde::{Deserialize};
+use serde::Deserialize;
 
 pub use kosem_base_rpc_client::config::ServerConfig;
 

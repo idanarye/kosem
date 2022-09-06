@@ -3,19 +3,14 @@ use std::collections::HashMap;
 use actix::prelude::*;
 use serde::Deserialize;
 
-use kosem_webapi::{Uuid, KosemResult};
 use kosem_webapi::handshake_messages::*;
 use kosem_webapi::pairing_messages::*;
 use kosem_webapi::phase_control_messages::*;
+use kosem_webapi::{KosemResult, Uuid};
 
 use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
 
-use crate::role_actors::{
-    NotYetIdentifiedActor,
-    ProcedureActor,
-    JoinerActor,
-    HumanActor,
-};
+use crate::role_actors::{HumanActor, JoinerActor, NotYetIdentifiedActor, ProcedureActor};
 
 pub enum ActorRoleState {
     Init,
@@ -37,7 +32,7 @@ pub enum RoutingError<E: serde::de::Error> {
     DeserializationError {
         method: Option<String>,
         error: E,
-    }
+    },
 }
 
 impl ActorRoleState {
@@ -152,7 +147,7 @@ impl ActorRoleState {
         let msg = crate::internal_messages::connection::ConnectionClosed;
 
         match self {
-            ActorRoleState::Init => {},
+            ActorRoleState::Init => {}
             ActorRoleState::NotYetIdentifiedActor(addr) => addr.do_send(msg),
             ActorRoleState::ProcedureActor(addr) => addr.do_send(msg),
             ActorRoleState::HumanActor { joiner, procedures } => {
@@ -160,7 +155,7 @@ impl ActorRoleState {
                     procedure.do_send(msg.clone());
                 }
                 joiner.do_send(msg);
-            },
+            }
         }
     }
 }

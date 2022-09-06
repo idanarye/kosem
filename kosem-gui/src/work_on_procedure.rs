@@ -1,14 +1,12 @@
 use actix::prelude::*;
 use gtk::prelude::*;
 
-use kosem_webapi::Uuid;
 use kosem_webapi::pairing_messages;
 use kosem_webapi::phase_control_messages;
+use kosem_webapi::Uuid;
 
 use crate::internal_messages::gui_control::{
-    ProcedureScreenAttach,
-    UserClickedButton,
-    ShowJoinMenu,
+    ProcedureScreenAttach, ShowJoinMenu, UserClickedButton,
 };
 
 #[derive(woab::Factories)]
@@ -69,36 +67,64 @@ impl actix::Handler<woab::Signal> for WorkOnProcedureActor {
 impl Handler<phase_control_messages::PhasePushed> for WorkOnProcedureActor {
     type Result = ();
 
-    fn handle(&mut self, msg: phase_control_messages::PhasePushed, ctx: &mut Self::Context) -> Self::Result {
-        let phase_widgets: PhaseWidgets = self.factories.work_on_procedure.row_phase.instantiate().widgets().unwrap();
+    fn handle(
+        &mut self,
+        msg: phase_control_messages::PhasePushed,
+        ctx: &mut Self::Context,
+    ) -> Self::Result {
+        let phase_widgets: PhaseWidgets = self
+            .factories
+            .work_on_procedure
+            .row_phase
+            .instantiate()
+            .widgets()
+            .unwrap();
         self.widgets.lst_phases.add(&phase_widgets.row_phase);
         for (i, component) in msg.components.iter().enumerate() {
             match &component.params {
                 phase_control_messages::ComponentParams::Caption { text } => {
-                    let widgets: ComponentCaptionWidgets = self.factories.work_on_procedure.cld_caption.instantiate().widgets().unwrap();
-                    widgets.lbl_caption.set_text(&text);
+                    let widgets: ComponentCaptionWidgets = self
+                        .factories
+                        .work_on_procedure
+                        .cld_caption
+                        .instantiate()
+                        .widgets()
+                        .unwrap();
+                    widgets.lbl_caption.set_text(text);
                     phase_widgets.box_components.add(&widgets.cld_caption);
                 }
                 phase_control_messages::ComponentParams::Button { text } => {
-                    let widgets: ComponentButtonWidgets = self.factories.work_on_procedure.cld_button.instantiate()
+                    let widgets: ComponentButtonWidgets = self
+                        .factories
+                        .work_on_procedure
+                        .cld_button
+                        .instantiate()
                         .connect_to(((msg.phase_uid, i), ctx.address()))
-                        .widgets().unwrap();
-                    widgets.btn_button.set_label(&text);
+                        .widgets()
+                        .unwrap();
+                    widgets.btn_button.set_label(text);
                     phase_widgets.box_components.add(&widgets.cld_button);
                 }
             }
         }
-        self.phases.insert(msg.phase_uid, PhaseRow {
-            widgets: phase_widgets,
-            msg,
-        });
+        self.phases.insert(
+            msg.phase_uid,
+            PhaseRow {
+                widgets: phase_widgets,
+                msg,
+            },
+        );
     }
 }
 
 impl Handler<phase_control_messages::PhasePopped> for WorkOnProcedureActor {
     type Result = ();
 
-    fn handle(&mut self, msg: phase_control_messages::PhasePopped, _ctx: &mut Self::Context) -> Self::Result {
+    fn handle(
+        &mut self,
+        msg: phase_control_messages::PhasePopped,
+        _ctx: &mut Self::Context,
+    ) -> Self::Result {
         let phase_row = if let Some(p) = self.phases.get(&msg.phase_uid) {
             p
         } else {
@@ -112,7 +138,11 @@ impl Handler<phase_control_messages::PhasePopped> for WorkOnProcedureActor {
 impl Handler<pairing_messages::ProcedureFinished> for WorkOnProcedureActor {
     type Result = ();
 
-    fn handle(&mut self, _msg: pairing_messages::ProcedureFinished, _ctx: &mut Self::Context) -> Self::Result {
+    fn handle(
+        &mut self,
+        _msg: pairing_messages::ProcedureFinished,
+        _ctx: &mut Self::Context,
+    ) -> Self::Result {
         self.widgets.app_work_on_procedure_window.close();
     }
 }
@@ -143,7 +173,11 @@ struct ComponentButtonWidgets {
 impl actix::Handler<woab::Signal<(Uuid, usize)>> for WorkOnProcedureActor {
     type Result = woab::SignalResult;
 
-    fn handle(&mut self, msg: woab::Signal<(Uuid, usize)>, _ctx: &mut Self::Context) -> Self::Result {
+    fn handle(
+        &mut self,
+        msg: woab::Signal<(Uuid, usize)>,
+        _ctx: &mut Self::Context,
+    ) -> Self::Result {
         let (phase_uid, component_ordinal) = *msg.tag();
         let phase_row = if let Some(p) = self.phases.get(&phase_uid) {
             p
@@ -154,7 +188,12 @@ impl actix::Handler<woab::Signal<(Uuid, usize)>> for WorkOnProcedureActor {
         let component = if let Some(c) = phase_row.msg.components.get(component_ordinal) {
             c
         } else {
-            log::warn!("Phase {} only has {} components - cannot access component {}", phase_uid, phase_row.msg.components.len(), component_ordinal);
+            log::warn!(
+                "Phase {} only has {} components - cannot access component {}",
+                phase_uid,
+                phase_row.msg.components.len(),
+                component_ordinal
+            );
             return Ok(None);
         };
         Ok(match msg.name() {

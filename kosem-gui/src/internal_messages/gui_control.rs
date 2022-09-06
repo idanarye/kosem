@@ -13,14 +13,14 @@ impl<T> Message for MessageFromServer<T> {
 }
 
 #[derive(Debug, Message)]
-#[rtype(result="()")]
+#[rtype(result = "()")]
 pub struct UserSelectedProcedure {
     pub server_idx: usize,
     pub procedure_uid: Uuid,
 }
 
 #[derive(Message)]
-#[rtype(result="()")]
+#[rtype(result = "()")]
 pub struct ProcedureScreenAttach {
     pub server_idx: usize,
     pub request_uid: Uuid,
@@ -28,7 +28,7 @@ pub struct ProcedureScreenAttach {
 }
 
 #[derive(Message)]
-#[rtype(result="()")]
+#[rtype(result = "()")]
 pub struct UserClickedButton {
     pub server_idx: usize,
     pub request_uid: Uuid,
@@ -37,5 +37,5 @@ pub struct UserClickedButton {
 }
 
 #[derive(Message)]
-#[rtype(result="()")]
+#[rtype(result = "()")]
 pub struct ShowJoinMenu;

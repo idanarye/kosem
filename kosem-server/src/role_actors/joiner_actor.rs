@@ -1,20 +1,15 @@
 use actix::prelude::*;
 
-use kosem_webapi::{Uuid, KosemResult};
 use kosem_webapi::pairing_messages::*;
+use kosem_webapi::{KosemResult, Uuid};
 
 use crate::protocol_handlers::websocket_jsonrpc::WsJrpc;
-use crate::role_actors::{PairingActor, HumanActor};
+use crate::role_actors::{HumanActor, PairingActor};
 
-use crate::internal_messages::connection::{RpcMessage, ConnectionClosed};
+use crate::internal_messages::connection::{ConnectionClosed, RpcMessage};
 use crate::internal_messages::pairing::{
-    HumanAvailable,
-    ProcedureRequestingHuman,
-    RemoveRequestForHuman,
-    RemoveAvailableHuman,
-    HumanJoiningProcedure,
-    CreateNewHumanActor,
-    PairingPerformed,
+    CreateNewHumanActor, HumanAvailable, HumanJoiningProcedure, PairingPerformed,
+    ProcedureRequestingHuman, RemoveAvailableHuman, RemoveRequestForHuman,
 };
 
 #[derive(typed_builder::TypedBuilder)]
@@ -29,9 +24,7 @@ impl actix::Actor for JoinerActor {
 
     fn started(&mut self, ctx: &mut Self::Context) {
         log::info!("Starting JoinerActor {} - {}", self.uid, self.name);
-        let response = kosem_webapi::handshake_messages::LoginConfirmed {
-            uid: self.uid,
-        };
+        let response = kosem_webapi::handshake_messages::LoginConfirmed { uid: self.uid };
         let message = RpcMessage::new("LoginConfirmed", response);
         self.con_actor.do_send(message);
 
@@ -44,9 +37,7 @@ impl actix::Actor for JoinerActor {
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
         log::info!("Ending JoinerActor {}", self.uid);
-        PairingActor::from_registry().do_send(RemoveAvailableHuman {
-            uid: self.uid,
-        });
+        PairingActor::from_registry().do_send(RemoveAvailableHuman { uid: self.uid });
     }
 }
 
@@ -62,10 +53,13 @@ impl actix::Handler<ProcedureRequestingHuman> for JoinerActor {
     type Result = ();
 
     fn handle(&mut self, msg: ProcedureRequestingHuman, _ctx: &mut Self::Context) -> Self::Result {
-        self.con_actor.do_send(RpcMessage::new("AvailableProcedure", kosem_webapi::pairing_messages::AvailableProcedure {
-            uid: msg.uid,
-            name: msg.orig_request.name,
-        }));
+        self.con_actor.do_send(RpcMessage::new(
+            "AvailableProcedure",
+            kosem_webapi::pairing_messages::AvailableProcedure {
+                uid: msg.uid,
+                name: msg.orig_request.name,
+            },
+        ));
     }
 }
 
@@ -73,9 +67,10 @@ impl actix::Handler<RemoveRequestForHuman> for JoinerActor {
     type Result = ();
 
     fn handle(&mut self, msg: RemoveRequestForHuman, _ctx: &mut Self::Context) -> Self::Result {
-        self.con_actor.do_send(RpcMessage::new("UnavailableProcedure", kosem_webapi::pairing_messages::UnavailableProcedure {
-            uid: msg.uid,
-        }));
+        self.con_actor.do_send(RpcMessage::new(
+            "UnavailableProcedure",
+            kosem_webapi::pairing_messages::UnavailableProcedure { uid: msg.uid },
+        ));
     }
 }
 
@@ -86,16 +81,17 @@ impl actix::Handler<JoinProcedure> for JoinerActor {
         log::info!("Human {} joined procedure {}", self.name, msg.uid);
 
         Box::pin(
-            PairingActor::from_registry().send(HumanJoiningProcedure {
-                human_uid: self.uid,
-                request_uid: msg.uid,
-            })
-            .into_actor(self)
-            .then(|result, _actor, _ctx| {
-                let result = result.unwrap();
-                log::warn!("Join result is {:?}", result);
-                fut::result(result)
-            })
+            PairingActor::from_registry()
+                .send(HumanJoiningProcedure {
+                    human_uid: self.uid,
+                    request_uid: msg.uid,
+                })
+                .into_actor(self)
+                .then(|result, _actor, _ctx| {
+                    let result = result.unwrap();
+                    log::warn!("Join result is {:?}", result);
+                    fut::result(result)
+                }),
         )
     }
 }
@@ -103,14 +99,19 @@ impl actix::Handler<JoinProcedure> for JoinerActor {
 impl actix::Handler<CreateNewHumanActor> for JoinerActor {
     type Result = <CreateNewHumanActor as actix::Message>::Result;
 
-    fn handle(&mut self, msg: CreateNewHumanActor, _ctx: &mut actix::Context<Self>) -> Self::Result {
+    fn handle(
+        &mut self,
+        msg: CreateNewHumanActor,
+        _ctx: &mut actix::Context<Self>,
+    ) -> Self::Result {
         HumanActor::builder()
             .con_actor(self.con_actor.clone())
             .procedure_actor(msg.procedure_addr)
             .uid(self.uid)
             .request_uid(msg.request_uid)
             .name(self.name.clone())
-            .build().start()
+            .build()
+            .start()
     }
 }
 

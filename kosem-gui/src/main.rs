@@ -1,15 +1,13 @@
-use kosem_gui::client_config;
-
 fn main() -> anyhow::Result<()> {
-    flexi_logger::Logger::with_env_or_str("warn").start()?;
+    flexi_logger::Logger::try_with_env_or_str("warn")?.start()?;
 
-    let mut settings = config::Config::default();
-    settings.merge(config::File::with_name("KosemClient.toml"))?;
+    let settings = config::Config::builder()
+        .add_source(config::File::with_name("KosemClient.toml"))
+        .build()?;
 
-    let settings = settings.try_into::<client_config::ClientConfig>()?;
-    log::warn!("{:?}", settings);
+    let config = settings.try_deserialize()?;
 
-    kosem_gui::start_gtk(settings)?;
+    kosem_gui::start_gtk(config)?;
 
     Ok(())
 }

@@ -3,13 +3,11 @@ use std::collections::HashMap;
 use actix::prelude::*;
 use gtk::prelude::*;
 
-use kosem_webapi::Uuid;
 use kosem_webapi::pairing_messages;
+use kosem_webapi::Uuid;
 
 use crate::internal_messages::gui_control::{
-    MessageFromServer,
-    UserSelectedProcedure,
-    ShowJoinMenu,
+    MessageFromServer, ShowJoinMenu, UserSelectedProcedure,
 };
 
 use crate::work_on_procedure::WorkOnProcedureActor;
@@ -69,25 +67,43 @@ impl Handler<ShowJoinMenu> for JoinMenuActor {
 impl Handler<MessageFromServer<pairing_messages::AvailableProcedure>> for JoinMenuActor {
     type Result = ();
 
-    fn handle(&mut self, msg: MessageFromServer<pairing_messages::AvailableProcedure>, ctx: &mut Self::Context) -> Self::Result {
+    fn handle(
+        &mut self,
+        msg: MessageFromServer<pairing_messages::AvailableProcedure>,
+        ctx: &mut Self::Context,
+    ) -> Self::Result {
         let procedure_uid = msg.msg.uid;
-        let new_row_widgets: RequestRowWidgets = self.factories.join_menu.row_request.instantiate()
+        let new_row_widgets: RequestRowWidgets = self
+            .factories
+            .join_menu
+            .row_request
+            .instantiate()
             .connect_to((procedure_uid, ctx.address()))
-            .widgets().unwrap();
+            .widgets()
+            .unwrap();
         new_row_widgets.lbl_request_name.set_text(&msg.msg.name);
-        self.widgets.lst_procedures.add(&new_row_widgets.row_request);
-        self.procedure_requests.insert(procedure_uid, RequestRow {
-            widgets: new_row_widgets,
-            server_idx: msg.server_idx,
-            procedure: msg.msg,
-        });
+        self.widgets
+            .lst_procedures
+            .add(&new_row_widgets.row_request);
+        self.procedure_requests.insert(
+            procedure_uid,
+            RequestRow {
+                widgets: new_row_widgets,
+                server_idx: msg.server_idx,
+                procedure: msg.msg,
+            },
+        );
     }
 }
 
 impl Handler<MessageFromServer<pairing_messages::UnavailableProcedure>> for JoinMenuActor {
     type Result = ();
 
-    fn handle(&mut self, msg: MessageFromServer<pairing_messages::UnavailableProcedure>, _ctx: &mut Self::Context) -> Self::Result {
+    fn handle(
+        &mut self,
+        msg: MessageFromServer<pairing_messages::UnavailableProcedure>,
+        _ctx: &mut Self::Context,
+    ) -> Self::Result {
         if let Some(row) = self.procedure_requests.remove(&msg.msg.uid) {
             self.widgets.lst_procedures.remove(&row.widgets.row_request);
         }
@@ -97,27 +113,40 @@ impl Handler<MessageFromServer<pairing_messages::UnavailableProcedure>> for Join
 impl Handler<MessageFromServer<pairing_messages::JoinConfirmation>> for JoinMenuActor {
     type Result = ();
 
-    fn handle(&mut self, msg: MessageFromServer<pairing_messages::JoinConfirmation>, ctx: &mut Self::Context) -> Self::Result {
+    fn handle(
+        &mut self,
+        msg: MessageFromServer<pairing_messages::JoinConfirmation>,
+        ctx: &mut Self::Context,
+    ) -> Self::Result {
         let row = if let Some(row) = self.procedure_requests.remove(&msg.msg.request_uid) {
             row
         } else {
             return;
         };
-        let RequestRow { widgets, procedure, server_idx } = row;
+        let RequestRow {
+            widgets,
+            procedure,
+            server_idx,
+        } = row;
         self.widgets.lst_procedures.remove(&widgets.row_request);
         self.widgets.app_join_menu_window.hide();
 
-        let _addr = self.factories.work_on_procedure.app_work_on_procedure_window.instantiate().connect_with(|bld| {
-            WorkOnProcedureActor::builder()
-                .factories(self.factories.clone())
-                .widgets(bld.widgets().unwrap())
-                .join_menu(ctx.address())
-                .gui_client(self.gui_client.clone())
-                .server_idx(server_idx)
-                .procedure(procedure)
-                .build()
-                .start()
-        });
+        let _addr = self
+            .factories
+            .work_on_procedure
+            .app_work_on_procedure_window
+            .instantiate()
+            .connect_with(|bld| {
+                WorkOnProcedureActor::builder()
+                    .factories(self.factories.clone())
+                    .widgets(bld.widgets().unwrap())
+                    .join_menu(ctx.address())
+                    .gui_client(self.gui_client.clone())
+                    .server_idx(server_idx)
+                    .procedure(procedure)
+                    .build()
+                    .start()
+            });
     }
 }
 
@@ -140,7 +169,7 @@ impl actix::Handler<woab::Signal<Uuid>> for JoinMenuActor {
         let uuid = msg.tag();
         Ok(match msg.name() {
             "connect_to_procedure" => {
-                if let Some(row) = self.procedure_requests.get(&uuid) {
+                if let Some(row) = self.procedure_requests.get(uuid) {
                     self.gui_client.do_send(UserSelectedProcedure {
                         server_idx: row.server_idx,
                         procedure_uid: row.procedure.uid,
