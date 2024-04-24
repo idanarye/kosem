@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use actix::prelude::*;
-use gtk::prelude::*;
+use gtk4::prelude::*;
 
 use kosem_webapi::pairing_messages;
 use kosem_webapi::Uuid;
@@ -31,15 +31,15 @@ impl Actor for JoinMenuActor {
     type Context = Context<Self>;
 
     fn started(&mut self, _ctx: &mut Self::Context) {
-        self.widgets.app_join_menu_window.show_all();
+        self.widgets.app_join_menu_window.set_visible(true);
     }
 }
 
 #[derive(woab::WidgetsFromBuilder)]
 pub struct JoinMenuWidgets {
-    pub app_join_menu_window: gtk::ApplicationWindow,
+    pub app_join_menu_window: gtk4::ApplicationWindow,
     #[allow(dead_code)]
-    lst_procedures: gtk::ListBox,
+    lst_procedures: gtk4::ListBox,
 }
 
 impl actix::Handler<woab::Signal> for JoinMenuActor {
@@ -48,7 +48,11 @@ impl actix::Handler<woab::Signal> for JoinMenuActor {
     fn handle(&mut self, msg: woab::Signal, _ctx: &mut Self::Context) -> Self::Result {
         Ok(match msg.name() {
             "close" => {
-                gtk::main_quit();
+                self.widgets
+                    .app_join_menu_window
+                    .application()
+                    .unwrap()
+                    .quit();
                 None
             }
             _ => msg.cant_handle()?,
@@ -60,7 +64,7 @@ impl Handler<ShowJoinMenu> for JoinMenuActor {
     type Result = ();
 
     fn handle(&mut self, _msg: ShowJoinMenu, _ctx: &mut Self::Context) -> Self::Result {
-        self.widgets.app_join_menu_window.show_all();
+        self.widgets.app_join_menu_window.set_visible(true);
     }
 }
 
@@ -77,14 +81,13 @@ impl Handler<MessageFromServer<pairing_messages::AvailableProcedure>> for JoinMe
             .factories
             .join_menu
             .row_request
-            .instantiate()
-            .connect_to((procedure_uid, ctx.address()))
+            .instantiate_route_to((procedure_uid, ctx.address()))
             .widgets()
             .unwrap();
         new_row_widgets.lbl_request_name.set_text(&msg.msg.name);
         self.widgets
             .lst_procedures
-            .add(&new_row_widgets.row_request);
+            .append(&new_row_widgets.row_request);
         self.procedure_requests.insert(
             procedure_uid,
             RequestRow {
@@ -129,24 +132,25 @@ impl Handler<MessageFromServer<pairing_messages::JoinConfirmation>> for JoinMenu
             server_idx,
         } = row;
         self.widgets.lst_procedures.remove(&widgets.row_request);
-        self.widgets.app_join_menu_window.hide();
+        self.widgets.app_join_menu_window.set_visible(false);
 
-        let _addr = self
+        let work_on_procedure_ctx = Context::new();
+        let bld = self
             .factories
             .work_on_procedure
             .app_work_on_procedure_window
-            .instantiate()
-            .connect_with(|bld| {
-                WorkOnProcedureActor::builder()
-                    .factories(self.factories.clone())
-                    .widgets(bld.widgets().unwrap())
-                    .join_menu(ctx.address())
-                    .gui_client(self.gui_client.clone())
-                    .server_idx(server_idx)
-                    .procedure(procedure)
-                    .build()
-                    .start()
-            });
+            .instantiate_route_to(work_on_procedure_ctx.address());
+        bld.set_application(&self.widgets.app_join_menu_window.application().unwrap());
+        work_on_procedure_ctx.run(
+            WorkOnProcedureActor::builder()
+                .factories(self.factories.clone())
+                .widgets(bld.widgets().unwrap())
+                .join_menu(ctx.address())
+                .gui_client(self.gui_client.clone())
+                .server_idx(server_idx)
+                .procedure(procedure)
+                .build(),
+        );
     }
 }
 
@@ -158,8 +162,8 @@ pub struct RequestRow {
 
 #[derive(woab::WidgetsFromBuilder)]
 pub struct RequestRowWidgets {
-    row_request: gtk::ListBoxRow,
-    lbl_request_name: gtk::Label,
+    row_request: gtk4::ListBoxRow,
+    lbl_request_name: gtk4::Label,
 }
 
 impl actix::Handler<woab::Signal<Uuid>> for JoinMenuActor {

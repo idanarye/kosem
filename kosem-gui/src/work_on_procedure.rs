@@ -1,5 +1,5 @@
 use actix::prelude::*;
-use gtk::prelude::*;
+use gtk4::prelude::*;
 
 use kosem_webapi::pairing_messages;
 use kosem_webapi::phase_control_messages;
@@ -34,7 +34,7 @@ impl Actor for WorkOnProcedureActor {
 
     fn started(&mut self, ctx: &mut Self::Context) {
         self.widgets.lbl_title.set_text(&self.procedure.name);
-        self.widgets.app_work_on_procedure_window.show_all();
+        self.widgets.app_work_on_procedure_window.set_visible(true);
         self.gui_client.do_send(ProcedureScreenAttach {
             server_idx: self.server_idx,
             request_uid: self.procedure.uid,
@@ -45,9 +45,9 @@ impl Actor for WorkOnProcedureActor {
 
 #[derive(woab::WidgetsFromBuilder)]
 pub struct WorkOnProcedureWidgets {
-    app_work_on_procedure_window: gtk::ApplicationWindow,
-    lst_phases: gtk::ListBox,
-    lbl_title: gtk::Label,
+    app_work_on_procedure_window: gtk4::ApplicationWindow,
+    lst_phases: gtk4::ListBox,
+    lbl_title: gtk4::Label,
 }
 
 impl actix::Handler<woab::Signal> for WorkOnProcedureActor {
@@ -76,10 +76,10 @@ impl Handler<phase_control_messages::PhasePushed> for WorkOnProcedureActor {
             .factories
             .work_on_procedure
             .row_phase
-            .instantiate()
+            .instantiate_without_routing_signals()
             .widgets()
             .unwrap();
-        self.widgets.lst_phases.add(&phase_widgets.row_phase);
+        self.widgets.lst_phases.append(&phase_widgets.row_phase);
         for (i, component) in msg.components.iter().enumerate() {
             match &component.params {
                 phase_control_messages::ComponentParams::Caption { text } => {
@@ -87,23 +87,22 @@ impl Handler<phase_control_messages::PhasePushed> for WorkOnProcedureActor {
                         .factories
                         .work_on_procedure
                         .cld_caption
-                        .instantiate()
+                        .instantiate_without_routing_signals()
                         .widgets()
                         .unwrap();
                     widgets.lbl_caption.set_text(text);
-                    phase_widgets.box_components.add(&widgets.cld_caption);
+                    phase_widgets.box_components.append(&widgets.cld_caption);
                 }
                 phase_control_messages::ComponentParams::Button { text } => {
                     let widgets: ComponentButtonWidgets = self
                         .factories
                         .work_on_procedure
                         .cld_button
-                        .instantiate()
-                        .connect_to(((msg.phase_uid, i), ctx.address()))
+                        .instantiate_route_to(((msg.phase_uid, i), ctx.address()))
                         .widgets()
                         .unwrap();
                     widgets.btn_button.set_label(text);
-                    phase_widgets.box_components.add(&widgets.cld_button);
+                    phase_widgets.box_components.append(&widgets.cld_button);
                 }
             }
         }
@@ -154,20 +153,20 @@ struct PhaseRow {
 
 #[derive(woab::WidgetsFromBuilder)]
 struct PhaseWidgets {
-    row_phase: gtk::ListBoxRow,
-    box_components: gtk::FlowBox,
+    row_phase: gtk4::ListBoxRow,
+    box_components: gtk4::FlowBox,
 }
 
 #[derive(woab::WidgetsFromBuilder)]
 struct ComponentCaptionWidgets {
-    cld_caption: gtk::FlowBoxChild,
-    lbl_caption: gtk::Label,
+    cld_caption: gtk4::FlowBoxChild,
+    lbl_caption: gtk4::Label,
 }
 
 #[derive(woab::WidgetsFromBuilder)]
 struct ComponentButtonWidgets {
-    cld_button: gtk::FlowBoxChild,
-    btn_button: gtk::Button,
+    cld_button: gtk4::FlowBoxChild,
+    btn_button: gtk4::Button,
 }
 
 impl actix::Handler<woab::Signal<(Uuid, usize)>> for WorkOnProcedureActor {
