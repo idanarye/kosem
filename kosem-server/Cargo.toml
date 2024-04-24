@@ -7,18 +7,18 @@ license = "MIT/Apache-2.0"
 repository = "https://github.com/idanarye/kosem"
 
 [dependencies]
-log = "0.4.17"
-flexi_logger = "0.23.1"
-actix-web = "4.1.0"
-config = "0.13.2"
-serde = { version = "1.0.144", features = ["derive"] }
-serde_json = "1.0.85"
+log = "^0.4"
+flexi_logger = "^0.28"
+actix-web = "^4"
+config = "^0.14"
+serde = { version = "^1", features = ["derive"] }
+serde_json = "^1"
 
-futures = "0.3.24"
+futures = "^0.3"
 kosem-webapi = { path = "../kosem-webapi" }
-actix = "0.13.0"
-actix-web-actors = "4.1.0"
-actix-rt = "2.7.0"
-typed-builder = "0.10.0"
+actix = "^0.13"
+actix-web-actors = "^4"
+actix-rt = "^2"
+typed-builder = "^0.18"
 serde-value = "0.7.0"
-actix-service = "2.0.2"
+actix-service = "^2"
