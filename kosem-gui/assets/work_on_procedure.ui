@@ -1,0 +1,67 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.90.1 -->
+<interface>
+  <requires lib="gtk" version="4.10"/>
+  <object class="GtkApplicationWindow" id="app_work_on_procedure_window">
+    <signal name="close-request" handler="close"/>
+    <child>
+      <object class="GtkGrid">
+        <property name="hexpand">True</property>
+        <property name="vexpand">True</property>
+        <child>
+          <object class="GtkLabel" id="lbl_title">
+            <property name="css-classes">title</property>
+            <property name="hexpand">True</property>
+            <property name="label">&lt;name of procedure request&gt;</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="column-span">1</property>
+              <property name="row">0</property>
+              <property name="row-span">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkListBox" id="lst_phases">
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
+            <child>
+              <object class="GtkListBoxRow" id="row_phase">
+                <property name="child">
+                  <object class="GtkFlowBox" id="box_components">
+                    <property name="hexpand">True</property>
+                    <property name="vexpand">True</property>
+                    <child>
+                      <object class="GtkFlowBoxChild" id="cld_caption">
+                        <property name="child">
+                          <object class="GtkLabel" id="lbl_caption"/>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkFlowBoxChild" id="cld_button">
+                        <property name="child">
+                          <object class="GtkButton" id="btn_button">
+                            <property name="label">&lt;button&gt;</property>
+                            <signal name="clicked" handler="button_clicked"/>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+                <property name="hexpand">True</property>
+              </object>
+            </child>
+            <layout>
+              <property name="column">0</property>
+              <property name="column-span">1</property>
+              <property name="row">1</property>
+              <property name="row-span">1</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

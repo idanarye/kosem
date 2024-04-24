@@ -2,10 +2,12 @@
 <!DOCTYPE cambalache-project SYSTEM "cambalache-project.dtd">
 <cambalache-project version="0.17.3" target_tk="gtk-4.0">
   <ui>
-	(1,None,"gui.ui","join_menu.ui",None,None,None,None,None,None,None)
+	(1,None,"gui.ui","join_menu.ui",None,None,None,None,None,None,None),
+	(2,None,None,"work_on_procedure.ui",None,None,None,None,None,None,None)
   </ui>
   <ui_library>
-	(1,"gtk","4.10",None)
+	(1,"gtk","4.10",None),
+	(2,"gtk","4.10",None)
   </ui_library>
   <css>
 	(1,"default.css",None,1)
@@ -19,7 +21,17 @@
 	(1,6,"GtkButton",None,4,None,None,None,None,None,None),
 	(1,7,"GtkSeparator",None,4,None,None,None,None,None,None),
 	(1,8,"GtkGrid",None,1,None,None,None,-1,None,None),
-	(1,9,"GtkLabel",None,8,None,None,None,None,None,None)
+	(1,9,"GtkLabel",None,8,None,None,None,None,None,None),
+	(2,1,"GtkApplicationWindow","app_work_on_procedure_window",None,None,None,None,-1,None,None),
+	(2,2,"GtkGrid",None,1,None,None,None,-1,None,None),
+	(2,3,"GtkLabel","lbl_title",2,None,None,None,None,None,None),
+	(2,4,"GtkListBox","lst_phases",2,None,None,None,None,None,None),
+	(2,5,"GtkListBoxRow","row_phase",4,None,None,None,None,None,None),
+	(2,6,"GtkFlowBox","box_components",5,None,None,None,-1,None,None),
+	(2,7,"GtkFlowBoxChild","cld_caption",6,None,None,None,-1,None,None),
+	(2,8,"GtkFlowBoxChild","cld_button",6,None,None,None,-1,None,None),
+	(2,9,"GtkLabel","lbl_caption",7,None,None,None,-1,None,None),
+	(2,10,"GtkButton","btn_button",8,None,None,None,-1,None,None)
   </object>
   <object_property>
 	(1,2,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),
@@ -31,7 +43,21 @@
 	(1,8,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),
 	(1,8,"GtkWidget","vexpand","True",None,None,None,None,None,None,None,None,None),
 	(1,9,"GtkLabel","label","Kosem - Main Menu",None,None,None,None,None,None,None,None,None),
-	(1,9,"GtkWidget","css-classes","title",None,None,None,None,None,None,None,None,None)
+	(1,9,"GtkWidget","css-classes","title",None,None,None,None,None,None,None,None,None),
+	(2,2,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),
+	(2,2,"GtkWidget","vexpand","True",None,None,None,None,None,None,None,None,None),
+	(2,3,"GtkLabel","label","&lt;name of procedure request&gt;",None,None,None,None,None,None,None,None,None),
+	(2,3,"GtkWidget","css-classes","title",None,None,None,None,None,None,None,None,None),
+	(2,3,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),
+	(2,4,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),
+	(2,4,"GtkWidget","vexpand","True",None,None,None,None,None,None,None,None,None),
+	(2,5,"GtkListBoxRow","child",None,None,None,None,None,6,None,None,None,None),
+	(2,5,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),
+	(2,6,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),
+	(2,6,"GtkWidget","vexpand","True",None,None,None,None,None,None,None,None,None),
+	(2,7,"GtkFlowBoxChild","child",None,None,None,None,None,9,None,None,None,None),
+	(2,8,"GtkFlowBoxChild","child",None,None,None,None,None,10,None,None,None,None),
+	(2,10,"GtkButton","label","&lt;button&gt;",None,None,None,None,None,None,None,None,None)
   </object_property>
   <object_layout_property>
 	(1,4,5,"GtkGridLayoutChild","column","0",None,None,None,None),
@@ -50,10 +76,20 @@
 	(1,8,9,"GtkGridLayoutChild","column","0",None,None,None,None),
 	(1,8,9,"GtkGridLayoutChild","column-span","1",None,None,None,None),
 	(1,8,9,"GtkGridLayoutChild","row","0",None,None,None,None),
-	(1,8,9,"GtkGridLayoutChild","row-span","1",None,None,None,None)
+	(1,8,9,"GtkGridLayoutChild","row-span","1",None,None,None,None),
+	(2,2,3,"GtkGridLayoutChild","column","0",None,None,None,None),
+	(2,2,3,"GtkGridLayoutChild","column-span","1",None,None,None,None),
+	(2,2,3,"GtkGridLayoutChild","row","0",None,None,None,None),
+	(2,2,3,"GtkGridLayoutChild","row-span","1",None,None,None,None),
+	(2,2,4,"GtkGridLayoutChild","column","0",None,None,None,None),
+	(2,2,4,"GtkGridLayoutChild","column-span","1",None,None,None,None),
+	(2,2,4,"GtkGridLayoutChild","row","1",None,None,None,None),
+	(2,2,4,"GtkGridLayoutChild","row-span","1",None,None,None,None)
   </object_layout_property>
   <object_signal>
 	(1,1,6,"GtkButton","clicked","connect_to_procedure",None,None,None,None,None),
-	(3,1,1,"GtkWindow","close-request","close",None,None,None,None,None)
+	(3,1,1,"GtkWindow","close-request","close",None,None,None,None,None),
+	(4,2,10,"GtkButton","clicked","button_clicked",None,None,None,None,None),
+	(5,2,1,"GtkWindow","close-request","close",None,None,None,None,None)
   </object_signal>
 </cambalache-project>

@@ -35,7 +35,7 @@ pub fn start_gtk(settings: client_config::ClientConfig) -> woab::Result<()> {
             Asset::get("join_menu.ui").unwrap().data.as_ref(),
         )?,
         work_on_procedure: work_on_procedure::WorkOnProcedureFactories::read(
-            Asset::get("work_on_procedure.glade").unwrap().data.as_ref(),
+            Asset::get("work_on_procedure.ui").unwrap().data.as_ref(),
         )?,
     });
 
