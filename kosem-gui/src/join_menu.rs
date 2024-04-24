@@ -53,7 +53,7 @@ impl actix::Handler<woab::Signal> for JoinMenuActor {
                     .application()
                     .unwrap()
                     .quit();
-                None
+                Some(glib::Propagation::Stop)
             }
             _ => msg.cant_handle()?,
         })

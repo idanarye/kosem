@@ -1,0 +1,56 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.90.1 -->
+<interface>
+  <!-- interface-name gui.ui -->
+  <requires lib="gtk" version="4.10"/>
+  <object class="GtkApplicationWindow" id="app_join_menu_window">
+    <signal name="close-request" handler="close"/>
+    <child>
+      <object class="GtkListBox" id="lst_procedures">
+        <child>
+          <object class="GtkListBoxRow" id="row_request">
+            <child>
+              <object class="GtkGrid">
+                <property name="hexpand">True</property>
+                <child>
+                  <object class="GtkLabel" id="lbl_request_name">
+                    <property name="label">&lt;Name&gt;</property>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="column-span">1</property>
+                      <property name="row">0</property>
+                      <property name="row-span">1</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton">
+                    <property name="label">Connect</property>
+                    <signal name="clicked" handler="connect_to_procedure"/>
+                    <layout>
+                      <property name="column">2</property>
+                      <property name="column-span">1</property>
+                      <property name="row">0</property>
+                      <property name="row-span">1</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkSeparator">
+                    <property name="hexpand">True</property>
+                    <layout>
+                      <property name="column">1</property>
+                      <property name="column-span">1</property>
+                      <property name="row">0</property>
+                      <property name="row-span">1</property>
+                    </layout>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>
