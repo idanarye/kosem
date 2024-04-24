@@ -6,48 +6,72 @@
   <object class="GtkApplicationWindow" id="app_join_menu_window">
     <signal name="close-request" handler="close"/>
     <child>
-      <object class="GtkListBox" id="lst_procedures">
+      <object class="GtkGrid">
+        <property name="hexpand">True</property>
+        <property name="vexpand">True</property>
         <child>
-          <object class="GtkListBoxRow" id="row_request">
+          <object class="GtkListBox" id="lst_procedures">
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
             <child>
-              <object class="GtkGrid">
-                <property name="hexpand">True</property>
+              <object class="GtkListBoxRow" id="row_request">
                 <child>
-                  <object class="GtkLabel" id="lbl_request_name">
-                    <property name="label">&lt;Name&gt;</property>
-                    <layout>
-                      <property name="column">0</property>
-                      <property name="column-span">1</property>
-                      <property name="row">0</property>
-                      <property name="row-span">1</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkButton">
-                    <property name="label">Connect</property>
-                    <signal name="clicked" handler="connect_to_procedure"/>
-                    <layout>
-                      <property name="column">2</property>
-                      <property name="column-span">1</property>
-                      <property name="row">0</property>
-                      <property name="row-span">1</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkSeparator">
+                  <object class="GtkGrid">
                     <property name="hexpand">True</property>
-                    <layout>
-                      <property name="column">1</property>
-                      <property name="column-span">1</property>
-                      <property name="row">0</property>
-                      <property name="row-span">1</property>
-                    </layout>
+                    <child>
+                      <object class="GtkLabel" id="lbl_request_name">
+                        <property name="label">&lt;Name&gt;</property>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="column-span">1</property>
+                          <property name="row">0</property>
+                          <property name="row-span">1</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton">
+                        <property name="label">Connect</property>
+                        <signal name="clicked" handler="connect_to_procedure"/>
+                        <layout>
+                          <property name="column">2</property>
+                          <property name="column-span">1</property>
+                          <property name="row">0</property>
+                          <property name="row-span">1</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparator">
+                        <property name="hexpand">True</property>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="column-span">1</property>
+                          <property name="row">0</property>
+                          <property name="row-span">1</property>
+                        </layout>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>
             </child>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="css-classes">title</property>
+            <property name="label">Kosem - Main Menu</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="column-span">1</property>
+              <property name="row">0</property>
+              <property name="row-span">1</property>
+            </layout>
           </object>
         </child>
       </object>
