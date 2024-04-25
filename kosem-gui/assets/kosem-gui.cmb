@@ -89,7 +89,6 @@
   <object_signal>
 	(3,1,1,"GtkWindow","close-request","close",None,None,None,None,None),
 	(4,2,10,"GtkButton","clicked","button_clicked",None,None,None,None,None),
-	(5,2,1,"GtkWindow","close-request","close",None,None,None,None,None),
 	(7,1,8,"GtkButton","clicked","connect_to_procedure",None,None,None,None,None)
   </object_signal>
 </cambalache-project>

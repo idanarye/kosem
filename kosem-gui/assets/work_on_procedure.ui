@@ -3,7 +3,6 @@
 <interface>
   <requires lib="gtk" version="4.10"/>
   <object class="GtkApplicationWindow" id="app_work_on_procedure_window">
-    <signal name="close-request" handler="close"/>
     <child>
       <object class="GtkGrid">
         <property name="hexpand">True</property>

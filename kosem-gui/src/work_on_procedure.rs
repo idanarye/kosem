@@ -55,10 +55,6 @@ impl actix::Handler<woab::Signal> for WorkOnProcedureActor {
 
     fn handle(&mut self, msg: woab::Signal, _ctx: &mut Self::Context) -> Self::Result {
         Ok(match msg.name() {
-            "close" => {
-                self.join_menu.do_send(ShowJoinMenu);
-                None
-            }
             _ => msg.cant_handle()?,
         })
     }
@@ -143,6 +139,7 @@ impl Handler<pairing_messages::ProcedureFinished> for WorkOnProcedureActor {
         _ctx: &mut Self::Context,
     ) -> Self::Result {
         self.widgets.app_work_on_procedure_window.close();
+        self.join_menu.do_send(ShowJoinMenu);
     }
 }
 
