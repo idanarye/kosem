@@ -1,0 +1,15 @@
+[package]
+name = "kosem-local"
+version = "0.1.0"
+authors = ["IdanArye <idanarye@gmail.com>"]
+edition = "2018"
+license = "MIT/Apache-2.0"
+repository = "https://github.com/idanarye/kosem"
+
+[dependencies]
+kosem-server = { path = "../kosem-server" }
+kosem-gui = { path = "../kosem-gui" }
+woab = "0.9"
+anyhow = "^1"
+flexi_logger = "^0.28"
+actix = "^0.13"

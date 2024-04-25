@@ -29,7 +29,10 @@ pub struct FactoriesInner {
 
 pub type Factories = std::rc::Rc<FactoriesInner>;
 
-pub fn start_gtk(settings: client_config::ClientConfig) -> woab::Result<()> {
+pub fn start_gui(
+    app: &gtk4::Application,
+    settings: client_config::ClientConfig,
+) -> woab::Result<()> {
     let factories = Factories::new(FactoriesInner {
         join_menu: join_menu::JoinMenuFactories::read(
             Asset::get("join_menu.ui").unwrap().data.as_ref(),
@@ -39,33 +42,31 @@ pub fn start_gtk(settings: client_config::ClientConfig) -> woab::Result<()> {
         )?,
     });
 
-    woab::main(Default::default(), move |app| {
-        let ctx = Context::new();
-        let bld = factories
-            .join_menu
-            .app_join_menu_window
-            .instantiate_route_to(ctx.address());
-        bld.set_application(app);
-        let widgets: crate::join_menu::JoinMenuWidgets = bld.widgets().unwrap();
-        gtk4::style_context_add_provider_for_display(
-            &WidgetExt::display(&widgets.app_join_menu_window),
-            &Asset::css_provider("default.css"),
-            gtk4::STYLE_PROVIDER_PRIORITY_APPLICATION,
-        );
+    let ctx = Context::new();
+    let bld = factories
+        .join_menu
+        .app_join_menu_window
+        .instantiate_route_to(ctx.address());
+    bld.set_application(app);
+    let widgets: crate::join_menu::JoinMenuWidgets = bld.widgets().unwrap();
+    gtk4::style_context_add_provider_for_display(
+        &WidgetExt::display(&widgets.app_join_menu_window),
+        &Asset::css_provider("default.css"),
+        gtk4::STYLE_PROVIDER_PRIORITY_APPLICATION,
+    );
 
-        let gui_client = crate::client::GuiClientActor::builder()
-            .join_menu(ctx.address())
-            .config(settings)
-            .build()
-            .start();
+    let gui_client = crate::client::GuiClientActor::builder()
+        .join_menu(ctx.address())
+        .config(settings)
+        .build()
+        .start();
 
-        ctx.run(
-            join_menu::JoinMenuActor::builder()
-                .factories(factories)
-                .widgets(widgets)
-                .gui_client(gui_client)
-                .build(),
-        );
-        Ok(())
-    })
+    ctx.run(
+        join_menu::JoinMenuActor::builder()
+            .factories(factories)
+            .widgets(widgets)
+            .gui_client(gui_client)
+            .build(),
+    );
+    Ok(())
 }

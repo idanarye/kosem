@@ -4,4 +4,5 @@ members = [
     "kosem-server",
     "kosem-gui",
     "kosem-base-rpc-client",
+    "kosem-local",
 ]

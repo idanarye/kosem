@@ -7,7 +7,9 @@ fn main() -> anyhow::Result<()> {
 
     let config = settings.try_deserialize()?;
 
-    kosem_gui::start_gtk(config)?;
+    woab::main(Default::default(), move |app| {
+        kosem_gui::start_gui(app, config)
+    })?;
 
     Ok(())
 }
