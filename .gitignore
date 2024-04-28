@@ -15,3 +15,7 @@ __pycache__
 
 **/*.glade!
 **/*.glade~
+
+kosem-python/.python-version
+kosem-python/build/
+kosem-python/kosem.egg-info/

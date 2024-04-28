@@ -1,1 +1,1 @@
-pytest_plugins = ['kosem.pytest']
+pytest_plugins = ["kosem.pytest"]
