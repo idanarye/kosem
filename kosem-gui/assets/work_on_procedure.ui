@@ -47,6 +47,13 @@
                         </property>
                       </object>
                     </child>
+                    <child>
+                      <object class="GtkFlowBoxChild" id="cld_textbox">
+                        <property name="child">
+                          <object class="GtkEntry" id="txt_textbox"/>
+                        </property>
+                      </object>
+                    </child>
                   </object>
                 </property>
                 <property name="hexpand">True</property>

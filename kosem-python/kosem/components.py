@@ -15,13 +15,17 @@ class KosemComponent(object):
 
 
 class Caption(KosemComponent):
-    def __init__(self, text):
+    def __init__(self, text: str):
         self.params = dict(text=text)
 
 
 class Button(KosemComponent):
-    def __init__(self, text):
+    def __init__(self, text: str):
         self.params = dict(text=text)
 
     def is_message_relevant(self, msg):
         return msg['method'] == 'ButtonClicked'
+
+class Textbox(KosemComponent):
+    def __init__(self, text: str):
+        self.params = dict(text=text)

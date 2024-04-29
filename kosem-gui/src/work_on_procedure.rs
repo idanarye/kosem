@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use actix::prelude::*;
 use gtk4::prelude::*;
 
@@ -15,6 +17,7 @@ pub struct WorkOnProcedureFactories {
     row_phase: woab::BuilderFactory,
     cld_caption: woab::BuilderFactory,
     cld_button: woab::BuilderFactory,
+    cld_textbox: woab::BuilderFactory,
 }
 
 #[derive(typed_builder::TypedBuilder)]
@@ -76,6 +79,7 @@ impl Handler<phase_control_messages::PhasePushed> for WorkOnProcedureActor {
             .widgets()
             .unwrap();
         self.widgets.lst_phases.append(&phase_widgets.row_phase);
+        let mut readable_components = HashMap::new();
         for (i, component) in msg.components.iter().enumerate() {
             match &component.params {
                 phase_control_messages::ComponentParams::Caption { text } => {
@@ -100,6 +104,23 @@ impl Handler<phase_control_messages::PhasePushed> for WorkOnProcedureActor {
                     widgets.btn_button.set_label(text);
                     phase_widgets.box_components.append(&widgets.cld_button);
                 }
+                phase_control_messages::ComponentParams::Textbox { text } => {
+                    let widgets: ComponentTextboxWidgets = self
+                        .factories
+                        .work_on_procedure
+                        .cld_textbox
+                        .instantiate_route_to(((msg.phase_uid, i), ctx.address()))
+                        .widgets()
+                        .unwrap();
+                    widgets.txt_textbox.set_text(text);
+                    if let Some(name) = component.name.as_ref() {
+                        widgets.txt_textbox.set_editable(true);
+                        readable_components.insert(name.to_owned(), ReadableComponent::Textbox(widgets.txt_textbox.clone()));
+                    } else {
+                        widgets.txt_textbox.set_editable(false);
+                    }
+                    phase_widgets.box_components.append(&widgets.cld_textbox);
+                }
             }
         }
         self.phases.insert(
@@ -107,6 +128,7 @@ impl Handler<phase_control_messages::PhasePushed> for WorkOnProcedureActor {
             PhaseRow {
                 widgets: phase_widgets,
                 msg,
+                readable_components,
             },
         );
     }
@@ -130,6 +152,21 @@ impl Handler<phase_control_messages::PhasePopped> for WorkOnProcedureActor {
     }
 }
 
+impl Handler<phase_control_messages::PhaseDataReadRequest> for WorkOnProcedureActor {
+    type Result = <phase_control_messages::PhaseDataReadRequest as Message>::Result;
+
+    fn handle(&mut self, msg: phase_control_messages::PhaseDataReadRequest, _ctx: &mut Self::Context) -> Self::Result {
+        log::info!("GUI will read from phase {:?}", msg.phase_uid);
+        let Some(phase) = self.phases.get(&msg.phase_uid) else {
+            panic!();
+            // return Err(KosemError::new("Phase does not exist").with("phase_uid", msg.phase_uid));
+        };
+        for (name, readable_component) in phase.readable_components.iter() {
+            log::info!("  {:?} => {:?}", name, readable_component.read());
+        }
+    }
+}
+
 impl Handler<pairing_messages::ProcedureFinished> for WorkOnProcedureActor {
     type Result = ();
 
@@ -146,6 +183,19 @@ impl Handler<pairing_messages::ProcedureFinished> for WorkOnProcedureActor {
 struct PhaseRow {
     widgets: PhaseWidgets,
     msg: phase_control_messages::PhasePushed,
+    readable_components: HashMap<String, ReadableComponent>,
+}
+
+enum ReadableComponent {
+    Textbox(gtk4::Entry),
+}
+
+impl ReadableComponent {
+    fn read(&self) -> String {
+        match self {
+            ReadableComponent::Textbox(textbox) => textbox.text().to_string(),
+        }
+    }
 }
 
 #[derive(woab::WidgetsFromBuilder)]
@@ -164,6 +214,12 @@ struct ComponentCaptionWidgets {
 struct ComponentButtonWidgets {
     cld_button: gtk4::FlowBoxChild,
     btn_button: gtk4::Button,
+}
+
+#[derive(woab::WidgetsFromBuilder)]
+struct ComponentTextboxWidgets {
+    cld_textbox: gtk4::FlowBoxChild,
+    txt_textbox: gtk4::Entry,
 }
 
 impl actix::Handler<woab::Signal<(Uuid, usize)>> for WorkOnProcedureActor {

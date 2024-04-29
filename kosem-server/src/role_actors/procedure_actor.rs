@@ -182,3 +182,20 @@ impl actix::Handler<ButtonClicked> for ProcedureActor {
             .do_send(RpcMessage::new("ButtonClicked", msg));
     }
 }
+
+impl actix::Handler<ReadPhaseData> for ProcedureActor {
+    type Result = <ReadPhaseData as actix::Message>::Result;
+
+    fn handle(&mut self, msg: ReadPhaseData, _ctx: &mut Self::Context) -> Self::Result {
+        let Some(_phase) = self.phases.get(&msg.phase_uid) else {
+            return Err(KosemError::new("Phase does not exist").with("phase_uid", msg.phase_uid));
+        };
+        for (&request_uid, human) in self.humans.iter() {
+            human.do_send(PhaseDataReadRequest {
+                request_uid,
+                phase_uid: msg.phase_uid,
+            });
+        }
+        Ok(())
+    }
+}

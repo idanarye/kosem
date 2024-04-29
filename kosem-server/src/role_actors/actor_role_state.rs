@@ -140,6 +140,7 @@ impl ActorRoleState {
             PushPhase => ProcedureActor;
             PopPhase => ProcedureActor;
             ClickButton => HumanActor;
+            ReadPhaseData => ProcedureActor;
         }
     }
 

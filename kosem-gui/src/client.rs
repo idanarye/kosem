@@ -11,7 +11,7 @@ use kosem_webapi::handshake_messages::{LoginAsHuman, LoginConfirmed};
 use kosem_webapi::pairing_messages::{
     AvailableProcedure, JoinConfirmation, JoinProcedure, ProcedureFinished, UnavailableProcedure,
 };
-use kosem_webapi::phase_control_messages::{ClickButton, PhasePopped, PhasePushed};
+use kosem_webapi::phase_control_messages::{ClickButton, PhasePopped, PhasePushed, PhaseDataReadRequest};
 use kosem_webapi::Uuid;
 
 use crate::internal_messages::gui_control::{
@@ -119,6 +119,7 @@ impl Handler<RpcMessage> for GuiClientActor {
             procedure_screen = {
                 PhasePushed,
                 PhasePopped,
+                PhaseDataReadRequest,
                 ProcedureFinished(_msg) {
                     // self.gui.do_send(MessageToLoginScreen::ShowAgain);
                 },

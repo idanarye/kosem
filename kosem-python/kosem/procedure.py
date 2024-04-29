@@ -3,7 +3,7 @@ from contextlib import contextmanager
 
 
 class KosemProcedure(object):
-    from .components import Caption, Button
+    from .components import Caption, Button, Textbox
 
     def __init__(self, connection, name):
         self._con = connection
@@ -101,6 +101,9 @@ class KosemPhase(object):
         for msg in self.relevant_messages():
             if msg['method'] == 'ButtonClicked':
                 return msg['params'].get('button_name', None)
+
+    def read_data(self):
+        self.procedure._con.call('ReadPhaseData', phase_uid=self.uid)
 
     def pop(self):
         self.procedure._con.call('PopPhase', phase_uid=self.uid)

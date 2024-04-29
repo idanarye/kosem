@@ -34,6 +34,7 @@ pub struct Component {
 pub enum ComponentParams {
     Caption { text: String },
     Button { text: String },
+    Textbox { text: String },
 }
 
 #[derive(Debug, Serialize, Deserialize, Message)]
@@ -63,4 +64,19 @@ pub struct ButtonClicked {
     pub human_uid: Uuid,
     pub phase_uid: Uuid,
     pub button_name: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Message)]
+#[rtype(result = "KosemResult<()>")]
+pub struct ReadPhaseData {
+    #[serde(default)]
+    pub limit_to_human_uids: Vec<Uuid>,
+    pub phase_uid: Uuid,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Message)]
+#[rtype(result = "()")]
+pub struct PhaseDataReadRequest {
+    pub request_uid: Uuid,
+    pub phase_uid: Uuid,
 }

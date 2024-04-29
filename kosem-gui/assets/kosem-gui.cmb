@@ -31,7 +31,9 @@
 	(2,7,"GtkFlowBoxChild","cld_caption",6,None,None,None,-1,None,None),
 	(2,8,"GtkFlowBoxChild","cld_button",6,None,None,None,-1,None,None),
 	(2,9,"GtkLabel","lbl_caption",7,None,None,None,-1,None,None),
-	(2,10,"GtkButton","btn_button",8,None,None,None,-1,None,None)
+	(2,10,"GtkButton","btn_button",8,None,None,None,-1,None,None),
+	(2,11,"GtkFlowBoxChild","cld_textbox",6,None,None,None,-1,None,None),
+	(2,12,"GtkEntry","txt_textbox",11,None,None,None,-1,None,None)
   </object>
   <object_property>
 	(1,2,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),
@@ -57,7 +59,8 @@
 	(2,6,"GtkWidget","vexpand","True",None,None,None,None,None,None,None,None,None),
 	(2,7,"GtkFlowBoxChild","child",None,None,None,None,None,9,None,None,None,None),
 	(2,8,"GtkFlowBoxChild","child",None,None,None,None,None,10,None,None,None,None),
-	(2,10,"GtkButton","label","&lt;button&gt;",None,None,None,None,None,None,None,None,None)
+	(2,10,"GtkButton","label","&lt;button&gt;",None,None,None,None,None,None,None,None,None),
+	(2,11,"GtkFlowBoxChild","child",None,None,None,None,None,12,None,None,None,None)
   </object_property>
   <object_layout_property>
 	(1,2,3,"GtkGridLayoutChild","column","0",None,None,None,None),

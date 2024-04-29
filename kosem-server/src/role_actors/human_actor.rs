@@ -97,7 +97,7 @@ impl actix::Handler<PhasePushed> for HumanActor {
     type Result = <PhasePushed as actix::Message>::Result;
 
     fn handle(&mut self, msg: PhasePushed, _ctx: &mut actix::Context<Self>) -> Self::Result {
-        log::info!("Human {} got phase {}", self.uid, msg.phase_uid);
+        log::info!("Human {} got push request for phase {}", self.uid, msg.phase_uid);
         self.con_actor.do_send(RpcMessage::new("PhasePushed", msg));
     }
 }
@@ -106,7 +106,7 @@ impl actix::Handler<PhasePopped> for HumanActor {
     type Result = <PhasePopped as actix::Message>::Result;
 
     fn handle(&mut self, msg: PhasePopped, _ctx: &mut actix::Context<Self>) -> Self::Result {
-        log::info!("Human {} got phase {}", self.uid, msg.phase_uid);
+        log::info!("Human {} got pop request for phase {}", self.uid, msg.phase_uid);
         self.con_actor.do_send(RpcMessage::new("PhasePopped", msg));
     }
 }
@@ -121,5 +121,14 @@ impl actix::Handler<ClickButton> for HumanActor {
             button_name: msg.button_name,
         });
         Ok(())
+    }
+}
+
+impl actix::Handler<PhaseDataReadRequest> for HumanActor {
+    type Result = <PhaseDataReadRequest as actix::Message>::Result;
+
+    fn handle(&mut self, msg: PhaseDataReadRequest, _ctx: &mut actix::Context<Self>) -> Self::Result {
+        log::info!("Human {} got read request for phase {}", self.uid, msg.phase_uid);
+        self.con_actor.do_send(RpcMessage::new("PhaseDataReadRequest", msg));
     }
 }
